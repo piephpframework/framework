@@ -4,6 +4,7 @@ class Object69{
 
     public static $controllers = [];
     public static $services    = [];
+    public static $directives  = [];
 
     /**
      *
@@ -111,7 +112,7 @@ class App{
 
     /**
      * Creates a controller to be used within the app
-     * @param type $name
+     * @param string $name
      * @param callable $callback
      * @return \App
      */
@@ -124,12 +125,23 @@ class App{
 
     /**
      * Creates a service to be used within the app
-     * @param type $name
+     * @param string $name
      * @param mixed $object
      * @return \App
      */
     public function service($name, $object){
         Object69::$services[$name] = $object;
+        return $this;
+    }
+
+    /**
+     * Creates a directive to be used within the app
+     * @param string $name
+     * @param mixed $object
+     * @return \App
+     */
+    public function directive($name, $object){
+        Object69::$directives[$name] = $object;
         return $this;
     }
 

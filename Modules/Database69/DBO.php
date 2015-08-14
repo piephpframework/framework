@@ -27,14 +27,23 @@ class DBO{
     }
 
     /**
-     * Gets item from database
+     * Gets items from the database
+     * @return stdClass
      */
-    public function get(){
+    public function get(array $comparisons = []){
+        $values = $this->getValues();
+        $table  = $this->getTable();
+        $where  = $this->getWhere($comparisons);
 
+        $query = "select * from $table $where";
+
+        $this->reset();
+        return $this->db->getAll($query, $values);
     }
 
     /**
-     * Inserts item into database
+     * Inserts items into the database
+     * @return int
      */
     public function save(){
         if(empty($this->fields)){
@@ -52,14 +61,14 @@ class DBO{
     }
 
     /**
-     * Edits an item in the database
+     * Edits items in the database
      */
     public function edit(){
 
     }
 
     /**
-     * Removes item from the database
+     * Removes items from the database
      */
     public function remove(){
 
@@ -80,7 +89,18 @@ class DBO{
     }
 
     protected function getValues(){
-        return array_values($this->fields);
+        $vals = array_values($this->fields);
+        $arr  = [];
+        foreach($vals as $val){
+            if(is_array($val)){
+                $arr = array_merge($arr, $val);
+            }else{
+                $arr[] = $val;
+            }
+        }
+        return array_map(function($item){
+            return ltrim($item, '!><');
+        }, $arr);
     }
 
     protected function getTable(){
@@ -88,6 +108,37 @@ class DBO{
             return $this->table;
         }
         throw new Exception("Invalid table name '$this->table'");
+    }
+
+    protected function getWhere(array $comp = []){
+        $keys = array_keys($this->fields);
+        $vals = array_values($this->fields);
+
+        $items = [];
+        foreach($keys as $index => $value){
+            if($vals[$index][0] == '!'){
+                $items[] = "$value != ?";
+            }elseif($vals[$index][0] == '>'){
+                $items[] = "$value > ?";
+            }elseif($vals[$index][0] == '<'){
+                $items[] = "$value < ?";
+            }elseif(is_array($vals[$index])){
+                $items[] = "$value in(" . implode(',', array_pad([], count($vals[$index]), '?')) . ")";
+            }else{
+                $items[] = "$value = ?";
+            }
+
+            if(count($comp) > 0){
+                if(isset($comp[$index])){
+                    $items[] = $comp[$index];
+                }
+            }
+        }
+        $str = count($items) > 0 ? ' where ' : '';
+        if(count($comp) > 0){
+            return $str . implode(' ', $items);
+        }
+        return $str . implode(' and ', $items);
     }
 
 }

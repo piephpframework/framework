@@ -21,7 +21,7 @@ class Tpl69 extends Module{
     public function init(App $parent){
         $this->app = Object69::module('Tpl69', []);
 
-        $this->app->routeChange = function ($value){
+        $this->app->routeChange = function ($value) use($parent){
             if(isset($value['settings']['templateUrl'])){
                 $file = $value['settings']['templateUrl'];
 
@@ -32,7 +32,7 @@ class Tpl69 extends Module{
                 /* @var $controller DOMElement */
                 foreach($doc->getElementsByTagName('controller') as $controller){
                     $ctrlName = $controller->getAttribute('name');
-                    $scope    = $this->app->call($ctrlName)->scope();
+                    $scope    = $parent->call($ctrlName)->scope();
 
                     // Test repeating items
                     $ctrl = $this->repeat($controller, $scope);
@@ -73,7 +73,7 @@ class Tpl69 extends Module{
 
             if(is_array($scope->$vals[1])){
                 foreach($scope->$vals[1] as $index => $value){
-                    $rep_nodes = $this->scope($node, null, $index, $value, $vals[0]);
+                    $rep_nodes = $this->scope($node, null, $index, $value, $vals);
                     /* @var $rep_node DOMElement */
                     foreach($rep_nodes as $rep_node){
                         $rep_node->removeAttribute('repeat');
@@ -108,11 +108,17 @@ class Tpl69 extends Module{
         foreach($tplDoc->getElementsByTagName('scope') as $node){
             $attrname = $node->getAttribute('name');
             $parent   = $node->parentNode;
-            if($attrname == $placeholder){
+            if($attrname == $placeholder[0]){
                 $txtNode = $tplDoc->createTextNode($value);
             }else{
-                var_dump($attrname);
-                $txtNode = $tplDoc->createTextNode($scope->$attrname);
+                if($placeholder[0] == explode('.', $attrname)[0]){
+                    $items   = explode('.', $attrname);
+                    array_shift($items);
+                    $val     = $this->find($value, implode('.', $items));
+                    $txtNode = $tplDoc->createTextNode($val);
+                }else{
+                    $txtNode = $tplDoc->createTextNode($scope->$attrname);
+                }
             }
             $node->parentNode->replaceChild($txtNode, $node);
             $newFrag->appendChild($newDoc->importNode($parent, true));
@@ -121,6 +127,19 @@ class Tpl69 extends Module{
             $newDoc->appendChild($newFrag);
         }
         return $newDoc->childNodes;
+    }
+
+    protected function find($obj, $path){
+        for($i = 0, $path = preg_split('/[\[\]\.]/', $path), $len = count($path); $i < $len; $i++){
+            if($path[$i]){
+                if(is_object($obj)){
+                    $obj = $obj->$path[$i];
+                }else{
+                    $obj = $obj[$path[$i]];
+                }
+            }
+        }
+        return $obj;
     }
 
 }

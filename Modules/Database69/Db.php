@@ -12,10 +12,10 @@ use PDOStatement;
 class Db{
 
     protected
-            $database = '',
-            $hostname = '',
-            $username = '',
-            $password = '',
+            $database = 'object69',
+            $hostname = 'localhost',
+            $username = 'root',
+            $password = 'afrid123',
             $port     = 3306,
             $dsn      = 'mysql',
             $db       = null;
@@ -36,7 +36,7 @@ class Db{
         }
     }
 
-    public function query($query, array $params = array()){
+    public function query($query, array $params = []){
         try{
             $this->connect();
             $this->stmt = $this->db->prepare($query);
@@ -47,6 +47,11 @@ class Db{
             throw $e;
         }
         return $this;
+    }
+
+    public function getAll($query, array $params = []){
+        $this->query($query, $params);
+        return $this->stmt->fetchAll(PDO::FETCH_CLASS);
     }
 
     public function rowCount(){
