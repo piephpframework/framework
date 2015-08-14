@@ -2,6 +2,7 @@
 
 namespace Modules\Tpl69;
 
+use App;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
@@ -17,7 +18,7 @@ class Tpl69 extends Module{
 
     protected $scope = null;
 
-    public function init(){
+    public function init(App $parent){
         $this->app = Object69::module('Tpl69', []);
 
         $this->app->routeChange = function ($value){

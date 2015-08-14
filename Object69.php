@@ -3,8 +3,15 @@
 class Object69{
 
     public static $controllers = [];
+    public static $services    = [];
 
-    public static function module($name, array $depend = []){
+    /**
+     *
+     * @param string $name
+     * @param array $depend
+     * @return \App
+     */
+    public static function module($name, array $depend){
         return new App($name, $depend);
     }
 
@@ -13,13 +20,14 @@ class Object69{
 class App{
 
     public
-            $classes   = [],
-            $items     = [],
-            $app       = null;
+            $items       = [],
+            $classes     = [],
+            $app         = null;
     protected
-            $name   = '',
-            $depend = [],
-            $scope  = null;
+            $name     = '',
+            $depend   = [],
+            $services = [],
+            $scope    = null;
 
     public function __set($name, $value){
         if($name == 'classes'){
@@ -54,7 +62,7 @@ class App{
         $apps = [];
         foreach($depend as $d){
             $class    = '\\Modules\\' . $d . '\\' . $d;
-            $apps[$d] = (new $class())->init();
+            $apps[$d] = (new $class())->init($this);
         }
         $this->depend = $apps;
     }
@@ -70,6 +78,10 @@ class App{
         }
     }
 
+    /**
+     * Fires off an event to anything that is listening
+     * @param Event $event
+     */
     public function fireEvent(Event $event){
         foreach($this->depend as $dep){
             if(is_callable(array($dep, $event->name))){
@@ -78,20 +90,46 @@ class App{
         }
     }
 
+    /**
+     * Gets the name of the app
+     * @return type
+     */
     public function getName(){
         return $this->name;
     }
 
+    /**
+     * Executes the configuration
+     * @param callable $callback
+     * @return \App
+     */
     public function config(callable $callback){
         $cbParams = $this->_getCbParams($callback);
         call_user_func_array($callback, $cbParams);
         return $this;
     }
 
+    /**
+     * Creates a controller to be used within the app
+     * @param type $name
+     * @param callable $callback
+     * @return \App
+     */
     public function controller($name, callable $callback){
         Object69::$controllers[$name]['controller'] = $callback;
         Object69::$controllers[$name]['scope']      = new Scope();
         Object69::$controllers[$name]['call']       = null;
+        return $this;
+    }
+
+    /**
+     * Creates a service to be used within the app
+     * @param type $name
+     * @param mixed $object
+     * @return \App
+     */
+    public function service($name, $object){
+        Object69::$services[$name] = $object;
         return $this;
     }
 
@@ -126,7 +164,7 @@ class App{
         }
         if(isset(Object69::$controllers[$ctrlName])){
             $scope                                    = null;
-            $result                                   = $this->_execController($ctrlName, $scope);
+            $result                                   = App::_execController($ctrlName, $scope);
             $call                                     = Object69::$controllers[$ctrlName]['call'] = new Call($scope, $result);
         }else{
             $call = new Call();
@@ -142,6 +180,14 @@ class App{
         return $this->classes;
     }
 
+    public function getServices(){
+        return $this->services;
+    }
+
+    /**
+     * Gets the scope
+     * @return type
+     */
     public function scope(){
         return $this->scope;
     }
@@ -156,31 +202,57 @@ class App{
     protected function _getCbParams($item, &$scope = null){
         if(is_array($item)){
             $func  = $item['controller'];
-            $scope = $item['scope'];
+            $scope = isset($item['scope']) ? $item['scope'] : null;
         }else{
             $func = $item;
         }
         $rf       = new ReflectionFunction($func);
         $params   = $rf->getParameters();
         $cbParams = array();
-//        var_dump($this);
+
+//        var_dump($this->name, $this->depend, $params);
 
         foreach($params as $param){
             if($param->name == 'scope'){
                 $cbParams[] = $scope;
             }else{
-                foreach($this->getClasses() as $index => $class){
+                // Inject application classes
+                foreach($this->classes as $index => $class){
                     if($index == $param->name){
                         $cbParams[] = $class;
                     }
                 }
-                foreach($this->depend as $dep){
-                    $classes = $dep->getClasses();
-                    if(isset($classes[$param->name])){
-                        $cbParams[] = $classes[$param->name];
-                    }elseif(isset($this->depend[$param->name])){
-                        $cbParams[] = $dep;
+
+                // Inject custom services
+                foreach(Object69::$services as $index => $service){
+                    if($index == $param->name){
+                        if($service instanceof Closure){
+                            $args       = $this->_getCbParams($service);
+                            $cbParams[] = call_user_func_array($service, $args);
+                        }else{
+                            $cbParams[] = $service;
+                        }
                     }
+                }
+
+                // Inject class dependencies
+                foreach($this->depend as $name => $dep){
+                    if($name == $param->name){
+                        $cbParams[] = $dep;
+                    }else{
+                        $classes = $dep->getClasses();
+                        foreach($classes as $index => $class){
+                            if($index == $param->name){
+                                $cbParams[] = $class;
+                            }
+                        }
+                    }
+//                    var_dump($param->name, $name, $classes);
+//                    if(isset($classes[$param->name])){
+//                        $cbParams[] = $classes[$param->name];
+//                    }elseif(isset($this->depend[$param->name])){
+//                        $cbParams[] = $dep;
+//                    }
                 }
             }
         }

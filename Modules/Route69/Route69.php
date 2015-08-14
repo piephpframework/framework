@@ -2,6 +2,7 @@
 
 namespace Modules\Route69;
 
+use App;
 use Event;
 use Modules\Module;
 use Object69;
@@ -9,7 +10,7 @@ use SimpleXMLElement;
 
 class Route69 extends Module{
 
-    public function init(){
+    public function init(App $parent){
         $this->app = Object69::module('Route69', []);
 
         $this->app->classes = [
@@ -20,10 +21,10 @@ class Route69 extends Module{
         $this->app->method = strtolower(filter_input(INPUT_SERVER, 'REQUEST_METHOD'));
         $this->app->path   = $this->_pathToArray(filter_input(INPUT_SERVER, 'REQUEST_URI'));
 
-        $this->app->cleanup = function(){
+        $this->app->cleanup = function() use ($parent){
             $controller = $this->_findRoute();
             if($controller !== null){
-                $this->app->exec($controller);
+                $parent->exec($controller);
             }
             $event        = new Event();
             $event->name  = 'routeChange';
