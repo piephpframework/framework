@@ -5,6 +5,7 @@ class Object69{
     public static $controllers = [];
     public static $services    = [];
     public static $directives  = [];
+    public static $root        = null;
 
     /**
      *
@@ -16,19 +17,36 @@ class Object69{
         return new App($name, $depend);
     }
 
+    public static function find($obj, $path){
+        for($i = 0, $path = preg_split('/[\[\]\.]/', $path), $len = count($path); $i < $len; $i++){
+            if($path[$i] == ''){
+                continue;
+            }
+            $item = ctype_digit($path[$i]) ? (int)$path[$i] : $path[$i];
+            if(is_object($obj)){
+                $obj = @$obj->$item;
+            }else{
+                $obj = @$obj[$item];
+            }
+        }
+        return $obj;
+    }
+
 }
+
+Object69::$root = filter_input(INPUT_SERVER, 'DOCUMENT_ROOT');
 
 class App{
 
     public
-            $items       = [],
-            $classes     = [],
-            $app         = null;
+        $items       = [],
+        $classes     = [],
+        $app         = null;
     protected
-            $name     = '',
-            $depend   = [],
-            $services = [],
-            $scope    = null;
+        $name     = '',
+        $depend   = [],
+        $services = [],
+        $scope    = null;
 
     public function __set($name, $value){
         if($name == 'classes'){
@@ -153,7 +171,7 @@ class App{
     public function call($name){
         if(isset(Object69::$controllers[$name]) && !Object69::$controllers[$name]['call']){
             $scope                                = null;
-            $result                               = $this->_execController($name, $scope);
+            $result                               = $this->execController($name, $scope);
             $call                                 = Object69::$controllers[$name]['call'] = new Call($scope, $result);
         }elseif(isset(Object69::$controllers[$name]) && Object69::$controllers[$name]['call']){
             $call = Object69::$controllers[$name]['call'];
@@ -176,7 +194,7 @@ class App{
         }
         if(isset(Object69::$controllers[$ctrlName])){
             $scope                                    = null;
-            $result                                   = App::_execController($ctrlName, $scope);
+            $result                                   = App::execController($ctrlName, $scope);
             $call                                     = Object69::$controllers[$ctrlName]['call'] = new Call($scope, $result);
         }else{
             $call = new Call();
@@ -204,7 +222,7 @@ class App{
         return $this->scope;
     }
 
-    protected function _execController($name, &$scope = null){
+    public function execController($name, &$scope = null){
         $cbParams = $this->_getCbParams(Object69::$controllers[$name], $scope);
         $result   = call_user_func_array(Object69::$controllers[$name]['controller'], $cbParams);
 
@@ -221,8 +239,6 @@ class App{
         $rf       = new ReflectionFunction($func);
         $params   = $rf->getParameters();
         $cbParams = array();
-
-//        var_dump($this->name, $this->depend, $params);
 
         foreach($params as $param){
             if($param->name == 'scope'){

@@ -12,21 +12,31 @@ use PDOStatement;
 class Db{
 
     protected
-            $database = 'object69',
-            $hostname = 'localhost',
-            $username = 'root',
-            $password = 'afrid123',
-            $port     = 3306,
-            $dsn      = 'mysql',
-            $db       = null;
+        $database = 'object69',
+        $hostname = 'localhost',
+        $username = 'root',
+        $password = 'afrid123',
+        $port     = 3306,
+        $dsn      = 'mysql',
+        $db       = null;
 
+    /**
+     * Gets a database object
+     * @param string $table
+     * @return \Modules\Database69\DBO
+     */
     public function get($table){
         return new DBO($table, $this);
     }
 
+    /**
+     * Connects to the database
+     * @return \Modules\Database69\Db
+     * @throws Exception
+     */
     public function connect(){
         if($this->db !== null){
-            return;
+            return $this;
         }
         try{
             $this->db = new PDO("$this->dsn:dbname=$this->database;host=$this->hostname;port=" . (int)$this->port, $this->username, $this->password);
@@ -36,28 +46,60 @@ class Db{
         }
     }
 
+    /**
+     * Queries the database
+     * @param string $query
+     * @param array $params
+     * @return \Modules\Database69\Db
+     * @throws Exception
+     */
     public function query($query, array $params = []){
         try{
             $this->connect();
             $this->stmt = $this->db->prepare($query);
             $this->bind($query, $params);
             $this->stmt->execute();
-            return true;
         }catch(Exception$e){
             throw $e;
         }
         return $this;
     }
 
+    /**
+     * Gets all found items from a query
+     * @param type $query
+     * @param array $params
+     * @return type
+     */
     public function getAll($query, array $params = []){
         $this->query($query, $params);
-        return $this->stmt->fetchAll(PDO::FETCH_CLASS);
+        return $this->stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Gets a row from a query
+     * @param type $query
+     * @param array $params
+     * @return type
+     */
+    public function getRow($query, array $params = []){
+        $this->query($query, $params);
+        return $this->stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Returns the number of rows affected by the last SQL statement
+     * @return int
+     */
     public function rowCount(){
         return $this->stmt->rowCount();
     }
 
+    /**
+     * Binds items to their placeholder
+     * @param string $query
+     * @param array $params
+     */
     protected function bind($query, array $params){
         if(strpos($query, "?")){
             array_unshift($params, null);

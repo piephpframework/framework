@@ -28,8 +28,14 @@ class Route69 extends Module{
             }
             $event        = new Event();
             $event->name  = 'routeChange';
-            $event->value = $controller;
+            $event->value = [$controller, $this->app->classes['route']->getAlways()];
             return $event;
+        };
+
+        $this->app->routeChange = function($value) use ($parent){
+            if(isset($value[0]['settings']['displayAs'])){
+                $this->_executeController($parent, $value[0]);
+            }
         };
 
         return $this->app;
@@ -48,7 +54,7 @@ class Route69 extends Module{
             // Route::when
             if(isset($r['path'])){
                 $route      = $this->_pathToArray($r['path']);
-                $route_good = true;
+                $route_good = false;
                 // If the path lengths match, test them
                 // Otherwise it isn't worth testing
                 if(count($this->app->path) == count($route)){
@@ -66,21 +72,28 @@ class Route69 extends Module{
                             $controller = $r['settings']['controller'];
                         }
                         $settings = $r['settings'];
+
+                        if($good){
+                            $route_good = true;
+                        }
+                    }
+                    if(!$route_good){
+                        $this->app->classes['routeParams'] = [];
                     }
                 }else{
                     $controller = null;
                     $settings   = null;
                 }
-                if($route_good){
-                    return [
-                        'controller' => $controller,
-                        'settings'   => $settings
-                    ];
-                }
+            }
+            if($route_good){
+                return [
+                    'controller' => $controller,
+                    'settings'   => $settings
+                ];
             }
         }
-        // Our route was not found, use our fallback
-        // Route::otherwise
+// Our route was not found, use our fallback
+// Route::otherwise
         foreach($routes as $route){
             if(isset($route['fallback'])){
 
@@ -97,6 +110,7 @@ class Route69 extends Module{
      */
     protected function _comparePathItems($item1, $item2){
         $matches = array();
+
         // Test if item is a parameter
         if(preg_match('/^(:|@|#).+?/', $item2, $matches) && !empty($item1)){
             if($matches[1] == '@' && !ctype_alpha($item1)){
@@ -111,6 +125,7 @@ class Route69 extends Module{
             $classes['routeParams']->$val = $item1;
             return true;
         }
+
         // Test if the two items match
         if($this->app->classes['route']->getStrict()){
             return $item1 === $item2;
@@ -120,8 +135,8 @@ class Route69 extends Module{
         return false;
     }
 
-    protected function _executeController(array $controller){
-        $result = parent::_executeController($controller);
+    protected function _executeController(App $parent, array $controller){
+        $result = $parent->execController($controller['controller']);
         if(isset($controller['settings']['displayAs'])){
             switch(strtolower($controller['settings']['displayAs'])){
                 case 'json':

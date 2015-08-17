@@ -30,14 +30,19 @@ class DBO{
      * Gets items from the database
      * @return stdClass
      */
-    public function get(array $comparisons = []){
+    public function get(array $settings = []){
         $values = $this->getValues();
         $table  = $this->getTable();
-        $where  = $this->getWhere($comparisons);
+        $where  = $this->getWhere($settings);
+        $order  = $this->getOrder($settings);
+        $limit  = $this->getLimit($settings);
 
-        $query = "select * from $table $where";
+        $query = "select * from $table $where $order $limit";
 
         $this->reset();
+        if(isset($settings['limit']) && $settings['limit'] == 1){
+            return $this->db->getRow($query, $values);
+        }
         return $this->db->getAll($query, $values);
     }
 
@@ -110,7 +115,7 @@ class DBO{
         throw new Exception("Invalid table name '$this->table'");
     }
 
-    protected function getWhere(array $comp = []){
+    protected function getWhere(array $settings = []){
         $keys = array_keys($this->fields);
         $vals = array_values($this->fields);
 
@@ -128,17 +133,37 @@ class DBO{
                 $items[] = "$value = ?";
             }
 
-            if(count($comp) > 0){
-                if(isset($comp[$index])){
-                    $items[] = $comp[$index];
+            if(isset($settings['comp']) && count($settings['comp']) > 0){
+                if(isset($settings['comp'][$index])){
+                    $items[] = $settings['comp'][$index];
                 }
             }
         }
         $str = count($items) > 0 ? ' where ' : '';
-        if(count($comp) > 0){
+        if(isset($settings['comp']) && count($settings['comp']) > 0){
             return $str . implode(' ', $items);
         }
         return $str . implode(' and ', $items);
+    }
+
+    protected function getLimit(array $settings){
+        if(isset($settings['limit'])){
+            return 'limit ' . (int)$settings['limit'];
+        }
+        return '';
+    }
+
+    protected function getOrder(array $settings){
+        if(isset($settings['order'])){
+            $dirs = [];
+            foreach($settings['order'] as $column => $dirc){
+                $col    = is_int($column) ? $dirc : $column;
+                $dir    = is_int($column) ? 'asc' : $dirc;
+                $dirs[] = $col . ' ' . $dir;
+            }
+            return 'order by ' . implode(', ', $dirs);
+        }
+        return '';
     }
 
 }
