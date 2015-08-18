@@ -208,7 +208,7 @@ class Tpl69 extends Module{
             $doc  = new DOMDocument();
             $docx = new DOMXPath($doc);
             foreach($items as $item){
-                $doc->appendChild($doc->importNode($node, true));
+                $appendedNode = $doc->appendChild($doc->importNode($node, true));
 
                 // find {{*}} items within attributes to be replaced
                 /* @var $scopeNode DOMElement */
@@ -223,27 +223,7 @@ class Tpl69 extends Module{
                         }
                     }
                 }
-
-                // find scope attributes/elements to be replaced
-                /* @var $scopeNode DOMElement */
-                foreach($docx->query('//scope | //*[@scope]') as $scopeNode){
-                    $content = $scopeNode->getAttribute('scope');
-                    $scopeNode->removeAttribute('scope');
-                    $is_attr = true;
-                    if(!$content){
-                        $content = $scopeNode->textContent;
-                        $is_attr = false;
-                    }
-                    $repl = trim(preg_replace('/^' . $vals[0] . '[\.\[]/', '', $content, 1), '.');
-                    $val  = Object69::find($item, $repl);
-
-                    if($is_attr){
-                        $scopeNode->nodeValue = $val;
-                    }else{
-                        $newNode = $doc->createTextNode($val);
-                        $scopeNode->parentNode->replaceChild($newNode, $scopeNode);
-                    }
-                }
+                $appendedNode->parentNode->replaceChild($doc->importNode($this->scope($appendedNode, $item, true, $vals[0]), true), $appendedNode);
             }
 
             $frag = $tpl->createDocumentFragment();
@@ -256,7 +236,7 @@ class Tpl69 extends Module{
         return $tpl->documentElement;
     }
 
-    protected function scope($controller, $scope){
+    protected function scope($controller, $scope, $repeater = false, $repeatVal = null){
         $tpl = new DOMDocument();
         $tpl->appendChild($tpl->importNode($controller, true));
 
@@ -269,8 +249,14 @@ class Tpl69 extends Module{
                 $content = $scopeNode->textContent;
                 $is_attr = false;
             }
-            $val = Object69::find($scope, $content);
-
+            if($repeater){
+                $content = trim(preg_replace('/^' . $repeatVal . '[\.\[]/', '', $content, 1), '.');
+            }
+            if($content == $repeatVal){
+                $val = $scope;
+            }else{
+                $val = Object69::find($scope, $content);
+            }
             if($is_attr){
                 $scopeNode->nodeValue = $val;
             }else{
@@ -330,7 +316,7 @@ class Tpl69 extends Module{
 //        $newFrag = $newDoc->createDocumentFragment();
 //        /* @var $node DOMNode */
 //        foreach($tplDoc->getElementsByTagName('s') as $node){
-////            $attrname = $node->getAttribute('name');
+//            $attrname = $node->getAttribute('name');
 //            $attrname = $node->textContent;
 //            $parent   = $node->parentNode;
 //            if($attrname == $placeholder[0]){

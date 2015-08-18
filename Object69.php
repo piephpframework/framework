@@ -131,13 +131,21 @@ class App{
     /**
      * Creates a controller to be used within the app
      * @param string $name
-     * @param callable $callback
+     * @param callable|string $callback
+     * @param string $method
      * @return \App
      */
-    public function controller($name, callable $callback){
-        Object69::$controllers[$name]['controller'] = $callback;
-        Object69::$controllers[$name]['scope']      = new Scope();
-        Object69::$controllers[$name]['call']       = null;
+    public function controller($name, $callback, $method = null){
+        if(is_callable($callback)){
+            Object69::$controllers[$name]['controller'] = $callback;
+        }elseif(is_string($callback)){
+            Object69::$controllers[$name]['controller'] = new $callback();
+            Object69::$controllers[$name]['method']     = $method;
+        }else{
+            throw new Exception('Invalid callback, must be a callable or a string');
+        }
+        Object69::$controllers[$name]['scope'] = new Scope();
+        Object69::$controllers[$name]['call']  = null;
         return $this;
     }
 
@@ -222,13 +230,30 @@ class App{
         return $this->scope;
     }
 
+    /**
+     * Runs a particular controller
+     * @param string $name The name of the controller
+     * @param type $scope
+     * @return type
+     */
     public function execController($name, &$scope = null){
         $cbParams = $this->_getCbParams(Object69::$controllers[$name], $scope);
-        $result   = call_user_func_array(Object69::$controllers[$name]['controller'], $cbParams);
-
+        $class    = Object69::$controllers[$name]['controller'];
+        if(is_object(Object69::$controllers[$name]['controller']) && isset(Object69::$controllers[$name]['method'])){
+            $method = Object69::$controllers[$name]['method'];
+            $result = call_user_func_array([$class, $method], $cbParams);
+        }else{
+            $result = call_user_func_array($class, $cbParams);
+        }
         return $result;
     }
 
+    /**
+     * Gets the needed classes/variables from a controller
+     * @param mixed $item
+     * @param type $scope
+     * @return type
+     */
     protected function _getCbParams($item, &$scope = null){
         if(is_array($item)){
             $func  = $item['controller'];
@@ -236,7 +261,11 @@ class App{
         }else{
             $func = $item;
         }
-        $rf       = new ReflectionFunction($func);
+        if(is_object($func) && is_array($item) && isset($item['method'])){
+            $rf = new ReflectionMethod($func, $item['method']);
+        }else{
+            $rf = new ReflectionFunction($func);
+        }
         $params   = $rf->getParameters();
         $cbParams = array();
 
@@ -275,12 +304,6 @@ class App{
                             }
                         }
                     }
-//                    var_dump($param->name, $name, $classes);
-//                    if(isset($classes[$param->name])){
-//                        $cbParams[] = $classes[$param->name];
-//                    }elseif(isset($this->depend[$param->name])){
-//                        $cbParams[] = $dep;
-//                    }
                 }
             }
         }
