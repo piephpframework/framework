@@ -1,5 +1,7 @@
 <?php
 
+use Services\Env;
+
 class Object69{
 
     public static $controllers = [];
@@ -11,7 +13,7 @@ class Object69{
      *
      * @param string $name
      * @param array $depend
-     * @return \App
+     * @return App
      */
     public static function module($name, array $depend){
         return new App($name, $depend);
@@ -34,19 +36,20 @@ class Object69{
 
 }
 
-Object69::$root = filter_input(INPUT_SERVER, 'DOCUMENT_ROOT');
+Object69::$root            = filter_input(INPUT_SERVER, 'DOCUMENT_ROOT');
+Object69::$services['env'] = new Env();
 
 class App{
 
     public
-        $items       = [],
-        $classes     = [],
-        $app         = null;
+            $items       = [],
+            $classes     = [],
+            $app         = null;
     protected
-        $name     = '',
-        $depend   = [],
-        $services = [],
-        $scope    = null;
+            $name     = '',
+            $depend   = [],
+            $services = [],
+            $scope    = null;
 
     public function __set($name, $value){
         if($name == 'classes'){
@@ -120,7 +123,7 @@ class App{
     /**
      * Executes the configuration
      * @param callable $callback
-     * @return \App
+     * @return App
      */
     public function config(callable $callback){
         $cbParams = $this->_getCbParams($callback);
@@ -133,7 +136,7 @@ class App{
      * @param string $name
      * @param callable|string $callback
      * @param string $method
-     * @return \App
+     * @return App
      */
     public function controller($name, $callback, $method = null){
         if(is_callable($callback)){
@@ -153,7 +156,7 @@ class App{
      * Creates a service to be used within the app
      * @param string $name
      * @param mixed $object
-     * @return \App
+     * @return App
      */
     public function service($name, $object){
         Object69::$services[$name] = $object;
@@ -164,7 +167,7 @@ class App{
      * Creates a directive to be used within the app
      * @param string $name
      * @param mixed $object
-     * @return \App
+     * @return App
      */
     public function directive($name, $object){
         Object69::$directives[$name] = $object;

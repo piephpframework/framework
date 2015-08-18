@@ -105,6 +105,8 @@ class Tpl69 extends Module{
 
         $newctrl = $this->scope($newctrl, $scope);
 
+        $newctrl = $this->braces($newctrl, $scope);
+
         return $newctrl;
     }
 
@@ -205,25 +207,18 @@ class Tpl69 extends Module{
             $vals   = array_map('trim', explode('in', $repeat));
             $items  = Object69::find($scope, $vals[1]);
 
-            $doc  = new DOMDocument();
-            $docx = new DOMXPath($doc);
+            $doc = new DOMDocument();
             foreach($items as $item){
-                $appendedNode = $doc->appendChild($doc->importNode($node, true));
+//                $appendedNode = $doc->appendChild($doc->importNode($node, true));
 
-                // find {{*}} items within attributes to be replaced
-                /* @var $scopeNode DOMElement */
-                foreach($docx->query('//*[*=contains(., "{{") and *=contains(., "}}")]') as $scopeNode){
-                    foreach($scopeNode->attributes as $attr){
-                        $matches = [];
-                        if(preg_match('/\{\{(.+?)\}\}/', $attr->value, $matches)){
-                            $repl = trim(preg_replace('/^' . $vals[0] . '[\.\[]/', '', $matches[1], 1), '.');
-                            $val  = Object69::find($item, $repl);
-                            $repl = preg_replace('/\{\{(.+?)\}\}/', $val, $attr->value);
-                            $scopeNode->setAttribute($attr->name, $repl);
-                        }
-                    }
-                }
-                $appendedNode->parentNode->replaceChild($doc->importNode($this->scope($appendedNode, $item, true, $vals[0]), true), $appendedNode);
+                $scopeRepl  = $this->scope($node, $item, true, $vals[0]);
+                $bracesRepl = $this->braces($scopeRepl, $item, true, $vals[0]);
+                $doc->appendChild($doc->importNode($bracesRepl, true));
+
+//                $scopeNode = $appendedNode->parentNode->replaceChild($doc->importNode($bracesRepl, true), $appendedNode);
+//                $scopeRepl = $this->scope($scopeNode, $item, true, $vals[0]);
+//                $scopeNode->parentNode->replaceChild($doc->importNode($scopeRepl, true), $scopeNode);
+//                $appendedNode->parentNode->replaceChild($doc->importNode($this->scope($appendedNode, $item, true, $vals[0]), true), $appendedNode);
             }
 
             $frag = $tpl->createDocumentFragment();
@@ -236,27 +231,67 @@ class Tpl69 extends Module{
         return $tpl->documentElement;
     }
 
+    protected function braces($controller, $scope, $repeater = false, $repeatVal = null){
+        $doc  = new DOMDocument();
+        $doc->appendChild($doc->importNode($controller, true));
+        $docx = new DOMXPath($doc);
+        // find {{*}} items within attributes to be replaced
+        /* @var $scopeNode DOMElement */
+        foreach($docx->query('//*[*=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
+            foreach($scopeNode->attributes as $attr){
+                $matches = [];
+                if(preg_match('/\{\{(.+?)\}\}/', $attr->value, $matches)){
+                    $content = explode('|', $matches[1]);
+                    if($repeater){
+                        $content[0] = trim(preg_replace('/^' . $repeatVal . '[\.\[]/', '', $content[0], 1), '.');
+                    }
+                    $find = trim(array_shift($content));
+                    if($find == $repeatVal){
+                        $val = $scope;
+                    }else{
+                        $val = Object69::find($scope, $find);
+                    }
+                    $val  = $this->functions($val, $content);
+                    $repl = preg_replace('/\{\{(.+?)\}\}/', $val, $attr->value);
+                    $scopeNode->setAttribute($attr->name, $repl);
+                }
+            }
+        }
+        return $doc->documentElement;
+    }
+
     protected function scope($controller, $scope, $repeater = false, $repeatVal = null){
         $tpl = new DOMDocument();
         $tpl->appendChild($tpl->importNode($controller, true));
 
         $docx = new \DOMXPath($tpl);
         foreach($docx->query('//scope | //*[@scope]') as $scopeNode){
-            $content = $scopeNode->getAttribute('scope');
+            $content = explode('|', $scopeNode->getAttribute('scope'));
             $scopeNode->removeAttribute('scope');
             $is_attr = true;
-            if(!$content){
-                $content = $scopeNode->textContent;
+            if(!$content[0] || empty($content[0])){
+                $content = explode('|', $scopeNode->textContent);
                 $is_attr = false;
             }
             if($repeater){
-                $content = trim(preg_replace('/^' . $repeatVal . '[\.\[]/', '', $content, 1), '.');
+                $content[0] = trim(preg_replace('/^' . $repeatVal . '[\.\[]/', '', $content[0], 1), '.');
             }
-            if($content == $repeatVal){
+            if($content[0] == $repeatVal){
                 $val = $scope;
             }else{
-                $val = Object69::find($scope, $content);
+                $val = Object69::find($scope, trim($content[0]));
             }
+            if(is_array($val)){
+                $val = json_encode($val);
+            }elseif(is_callable($val)){
+                $val = call_user_func_array($val, []);
+            }
+
+            if(count($content) > 1){
+                array_shift($content);
+                $val = $this->functions($val, $content);
+            }
+
             if($is_attr){
                 $scopeNode->nodeValue = $val;
             }else{
@@ -267,76 +302,21 @@ class Tpl69 extends Module{
         return $tpl->documentElement;
     }
 
-//    protected function repeat($controller, $scope){
-//        $ctrlDoc = new DOMDocument();
-//        $ctrlDoc->appendChild($ctrlDoc->importNode($controller, true));
-//        $xpath   = new DOMXPath($ctrlDoc);
-//        /* @var $node DOMNode */
-//        foreach($xpath->query('//*[@repeat]') as $node){
-//            $repeat = $node->getAttribute('repeat');
-//
-//            $doc  = new DOMDocument();
-//            $frag = $doc->createDocumentFragment();
-//
-//            $vals = explode('in', $repeat);
-//            $vals = array_map('trim', $vals);
-//
-//            if(is_array($scope->$vals[1])){
-//                foreach($scope->$vals[1] as $index => $value){
-//                    $rep_nodes = $this->scope($node, null, $index, $value, $vals);
-//                    /* @var $rep_node DOMElement */
-//                    foreach($rep_nodes as $rep_node){
-//                        $rep_node->removeAttribute('repeat');
-//                        $impNode = $doc->importNode($rep_node, true);
-//                        $frag->appendChild($impNode);
-//                    }
-//                }
-//            }
-//
-//            $node->parentNode->replaceChild($ctrlDoc->importNode($frag, true), $node);
-//        }
-//        return $ctrlDoc->firstChild;
-//    }
-//
-//    /**
-//     *
-//     * @param type $doc
-//     * @param type $key
-//     * @param type $value
-//     * @param type $placeholder
-//     * @return DOMNodeList
-//     */
-//    protected function scope($doc, $scope = null, $key = null, $value = null, $placeholder = null){
-//        $tplDoc  = new DOMDocument();
-//        $tplFrag = $tplDoc->createDocumentFragment();
-//        $tplFrag->appendChild($tplDoc->importNode($doc, true));
-//        $tplDoc->appendChild($tplFrag);
-//
-//        $newDoc  = new DOMDocument();
-//        $newFrag = $newDoc->createDocumentFragment();
-//        /* @var $node DOMNode */
-//        foreach($tplDoc->getElementsByTagName('s') as $node){
-//            $attrname = $node->getAttribute('name');
-//            $attrname = $node->textContent;
-//            $parent   = $node->parentNode;
-//            if($attrname == $placeholder[0]){
-//                $txtNode = $tplDoc->createTextNode($value);
-//            }else{
-//                if($placeholder[0] == explode('.', $attrname)[0]){
-//                    $items   = explode('.', $attrname);
-//                    array_shift($items);
-//                    $val     = Object69::find($value, implode('.', $items));
-//                    $txtNode = $tplDoc->createTextNode($val);
-//                }else{
-//                    $txtNode = $tplDoc->createTextNode($scope->$attrname);
-//                }
-//            }
-//            $node->parentNode->replaceChild($txtNode, $node);
-//            $newFrag->appendChild($newDoc->importNode($parent, true));
-//        }
-//        if($newFrag->childNodes->length > 0){
-//            $newDoc->appendChild($newFrag);
-//        }
-//        return $newDoc->childNodes;
-//    }
+    protected function functions($value, $operations){
+        $operations = array_map('trim', $operations);
+        foreach($operations as $op){
+            $items = explode(":", $op);
+            $func  = array_shift($items);
+            if(is_callable($func)){
+                array_unshift($items, $value);
+                $value = call_user_func_array($func, $items);
+            }
+        }
+        return $value;
+    }
+
+}
+
+foreach(glob(__DIR__ . '/filters/*.php') as $file){
+    require_once $file;
 }

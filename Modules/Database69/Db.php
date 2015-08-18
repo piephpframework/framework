@@ -12,13 +12,13 @@ use PDOStatement;
 class Db{
 
     protected
-        $database = 'object69',
-        $hostname = 'localhost',
-        $username = 'root',
-        $password = 'afrid123',
-        $port     = 3306,
-        $dsn      = 'mysql',
-        $db       = null;
+            $database = '',
+            $hostname = '',
+            $username = '',
+            $password = '',
+            $port     = 3306,
+            $dsn      = 'mysql',
+            $db       = null;
 
     /**
      * Gets a database object
@@ -27,6 +27,13 @@ class Db{
      */
     public function get($table){
         return new DBO($table, $this);
+    }
+
+    public function set(array $config){
+        $this->database = isset($config['database']) ? $config['database'] : '';
+        $this->hostname = isset($config['hostname']) ? $config['hostname'] : '';
+        $this->username = isset($config['username']) ? $config['username'] : '';
+        $this->password = isset($config['password']) ? $config['password'] : '';
     }
 
     /**
