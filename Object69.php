@@ -1,6 +1,7 @@
 <?php
 
 use Services\Env;
+use Services\Session;
 
 class Object69{
 
@@ -24,11 +25,27 @@ class Object69{
             if($path[$i] == ''){
                 continue;
             }
-            $item = ctype_digit($path[$i]) ? (int)$path[$i] : $path[$i];
-            if(is_object($obj)){
-                $obj = @$obj->$item;
+            if($path[$i] == '$server'){
+                $obj = $_SERVER;
+            }elseif($path[$i] == '$session'){
+                $obj = $_SESSION;
+            }elseif($path[$i] == '$env'){
+                $obj = $_ENV;
+            }elseif($path[$i] == '$get'){
+                $obj = $_GET;
+            }elseif($path[$i] == '$post'){
+                $obj = $_POST;
+            }elseif($path[$i] == '$request'){
+                $obj = $_REQUEST;
+            }elseif($path[$i] == '$cookie'){
+                $obj = $_COOKIE;
             }else{
-                $obj = @$obj[$item];
+                $item = ctype_digit($path[$i]) ? (int)$path[$i] : $path[$i];
+                if(is_object($obj)){
+                    $obj = @$obj->$item;
+                }else{
+                    $obj = @$obj[$item];
+                }
             }
         }
         return $obj;
@@ -36,8 +53,12 @@ class Object69{
 
 }
 
-Object69::$root            = filter_input(INPUT_SERVER, 'DOCUMENT_ROOT');
+Object69::$root = filter_input(INPUT_SERVER, 'DOCUMENT_ROOT');
+
 Object69::$services['env'] = new Env();
+if(isset($_ENV['session']['use']) && $_ENV['session']['use'] == 'yes'){
+    Object69::$services['session'] = new Session();
+}
 
 class App{
 

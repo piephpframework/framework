@@ -11,3 +11,11 @@ function upper($value){
 function encode($value, $type = 'md5'){
     return hash($type, $value);
 }
+
+function json($value){
+    return json_encode($value);
+}
+
+function def($value, $default = ''){
+    return !empty($value) ? $value : $default;
+}

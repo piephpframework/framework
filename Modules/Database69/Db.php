@@ -29,11 +29,14 @@ class Db{
         return new DBO($table, $this);
     }
 
-    public function set(array $config){
+    public function config(array $config){
         $this->database = isset($config['database']) ? $config['database'] : '';
         $this->hostname = isset($config['hostname']) ? $config['hostname'] : '';
         $this->username = isset($config['username']) ? $config['username'] : '';
         $this->password = isset($config['password']) ? $config['password'] : '';
+        $this->port     = isset($config['port']) ? $config['port'] : 3306;
+        $this->dsn      = isset($config['dsn']) ? $config['dsn'] : 'mysql';
+        return $this;
     }
 
     /**

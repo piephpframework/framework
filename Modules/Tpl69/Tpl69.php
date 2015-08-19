@@ -21,7 +21,8 @@ class Tpl69 extends Module{
 
         $this->app->routeChange = function ($value) use($parent){
             if(isset($value[0]['settings']['templateUrl'])){
-                $filename = \Object69::$root . $value[0]['settings']['templateUrl'];
+                $filename = $this->getRealFile($value);
+
                 $basefile = '';
                 if(isset($value[1]['baseTemplateUrl'])){
                     $basefile = \Object69::$root . $value[1]['baseTemplateUrl'];
@@ -81,8 +82,9 @@ class Tpl69 extends Module{
 ////                        $parent->replaceChild($impNode, $controller);
 //                    }
                 }
+                $doctype = isset($_ENV['tpl']['doctype']) ? $_ENV['tpl']['doctype'] : "<!doctype html>";
 
-                echo "<!doctype html>\n" . $finaldoc->saveHTML();
+                echo "$doctype\n" . $finaldoc->saveHTML();
             }
         };
 
@@ -313,6 +315,19 @@ class Tpl69 extends Module{
             }
         }
         return $value;
+    }
+
+    protected function getRealFile($value){
+        $base     = isset($_ENV['root']['templates']) ? $_ENV['root']['templates'] : '.';
+        $root     = strpos($base, '/') === 0 ? $base : $_SERVER['DOCUMENT_ROOT'] . '/' . $base;
+        $filename = $root . $value[0]['settings']['templateUrl'];
+        if(is_file($filename)){
+            return $filename;
+        }
+//        $filename = \Object69::$root . '/../' . $value[0]['settings']['templateUrl'];
+//        if(is_file($filename)){
+//            return $filename;
+//        }
     }
 
 }
