@@ -1,8 +1,8 @@
 <?php
 
-namespace Modules;
+namespace Object69\Modules;
 
-use App;
+use Object69\App;
 
 /**
  * @property App $app An application instance
@@ -10,7 +10,7 @@ use App;
 abstract class Module{
 
     public
-            $app = null;
+        $app = null;
 
     abstract public function init(App $parent);
 }

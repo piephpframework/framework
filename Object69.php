@@ -1,7 +1,13 @@
 <?php
 
-use Services\Env;
-use Services\Session;
+namespace Object69;
+
+use Closure;
+use Exception;
+use Object69\Services\Env;
+use Object69\Services\Session;
+use ReflectionFunction;
+use ReflectionMethod;
 
 class Object69{
 
@@ -63,14 +69,14 @@ if(isset($_ENV['session']['use']) && $_ENV['session']['use'] == 'yes'){
 class App{
 
     public
-            $items       = [],
-            $classes     = [],
-            $app         = null;
+        $items       = [],
+        $classes     = [],
+        $app         = null;
     protected
-            $name     = '',
-            $depend   = [],
-            $services = [],
-            $scope    = null;
+        $name     = '',
+        $depend   = [],
+        $services = [],
+        $scope    = null;
 
     public function __set($name, $value){
         if($name == 'classes'){
@@ -104,7 +110,7 @@ class App{
 
         $apps = [];
         foreach($depend as $d){
-            $class    = '\\Modules\\' . $d . '\\' . $d;
+            $class    = '\\Object69\\Modules\\' . $d . '\\' . $d;
             $apps[$d] = (new $class())->init($this);
         }
         $this->depend = $apps;

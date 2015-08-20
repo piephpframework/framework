@@ -1,13 +1,13 @@
 <?php
 
-namespace Modules\Tpl69;
+namespace Object69\Modules\Tpl69;
 
-use App;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
-use Modules\Module;
-use Object69;
+use Object69\App;
+use Object69\Modules\Module;
+use Object69\Object69;
 
 /**
  * @property DOMDocument $doc DOM Document
@@ -25,10 +25,10 @@ class Tpl69 extends Module{
 
                 $basefile = '';
                 if(isset($value[1]['baseTemplateUrl'])){
-                    $basefile = \Object69::$root . $value[1]['baseTemplateUrl'];
+                    $basefile = $this->getBase() . $value[1]['baseTemplateUrl'];
                 }
                 if(isset($value[0]['settings']['baseTemplateUrl'])){
-                    $basefile = \Object69::$root . $value[0]['settings']['baseTemplateUrl'];
+                    $basefile = $this->getBase() . $value[0]['settings']['baseTemplateUrl'];
                 }
 
                 if(!empty($basefile)){
@@ -56,7 +56,7 @@ class Tpl69 extends Module{
                 $finaldoc->formatOutput       = true;
 
                 $finaldoc->appendChild($finaldoc->importNode($newDoc->documentElement, true));
-                $xpath = new \DOMXPath($finaldoc);
+                $xpath = new DOMXPath($finaldoc);
 
                 /* @var $controller DOMElement */
                 foreach($xpath->query('//*[@controller]') as $controller){
@@ -121,7 +121,7 @@ class Tpl69 extends Module{
     protected function loadView(DOMDocument $doc, $filename){
         $tpl   = new DOMDocument();
         $tpl->appendChild($tpl->importNode($doc->documentElement, true));
-        $xpath = new \DOMXPath($tpl);
+        $xpath = new DOMXPath($tpl);
 
         /* @var $node DOMElement */
         foreach($xpath->query('//*[@view]') as $node){
@@ -266,7 +266,7 @@ class Tpl69 extends Module{
         $tpl = new DOMDocument();
         $tpl->appendChild($tpl->importNode($controller, true));
 
-        $docx = new \DOMXPath($tpl);
+        $docx = new DOMXPath($tpl);
         foreach($docx->query('//scope | //*[@scope]') as $scopeNode){
             $content = explode('|', $scopeNode->getAttribute('scope'));
             $scopeNode->removeAttribute('scope');
@@ -317,9 +317,13 @@ class Tpl69 extends Module{
         return $value;
     }
 
+    protected function getBase(){
+        $base = isset($_ENV['root']['templates']) ? $_ENV['root']['templates'] : '.';
+        return strpos($base, '/') === 0 ? $base : $_SERVER['DOCUMENT_ROOT'] . '/' . $base;
+    }
+
     protected function getRealFile($value){
-        $base     = isset($_ENV['root']['templates']) ? $_ENV['root']['templates'] : '.';
-        $root     = strpos($base, '/') === 0 ? $base : $_SERVER['DOCUMENT_ROOT'] . '/' . $base;
+        $root     = $this->getBase();
         $filename = $root . $value[0]['settings']['templateUrl'];
         if(is_file($filename)){
             return $filename;

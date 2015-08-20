@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Database69;
+namespace Object69\Modules\Database69;
 
 use Exception;
 use PDO;
@@ -12,18 +12,18 @@ use PDOStatement;
 class Db{
 
     protected
-            $database = '',
-            $hostname = '',
-            $username = '',
-            $password = '',
-            $port     = 3306,
-            $dsn      = 'mysql',
-            $db       = null;
+        $database = '',
+        $hostname = '',
+        $username = '',
+        $password = '',
+        $port     = 3306,
+        $dsn      = 'mysql',
+        $db       = null;
 
     /**
      * Gets a database object
      * @param string $table
-     * @return \Modules\Database69\DBO
+     * @return DBO
      */
     public function get($table){
         return new DBO($table, $this);
@@ -41,7 +41,7 @@ class Db{
 
     /**
      * Connects to the database
-     * @return \Modules\Database69\Db
+     * @return Db
      * @throws Exception
      */
     public function connect(){
@@ -60,7 +60,7 @@ class Db{
      * Queries the database
      * @param string $query
      * @param array $params
-     * @return \Modules\Database69\Db
+     * @return Db
      * @throws Exception
      */
     public function query($query, array $params = []){

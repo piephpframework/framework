@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Route69;
+namespace Object69\Modules\Route69;
 
 class Route{
 
@@ -11,7 +11,7 @@ class Route{
     /**
      * Always set the following settings for each call
      * @param array $settings
-     * @return \Route69\Route
+     * @return Route
      */
     public function always(array $settings = null){
         $this->always = $settings;
@@ -22,7 +22,7 @@ class Route{
      * Sets a new route to be tested
      * @param string $path The path of the route
      * @param array $settings The settings fo the route
-     * @return \Route69\Route
+     * @return Route
      */
     public function when($path, array $settings = null){
         $this->routes[] = array(
@@ -35,7 +35,7 @@ class Route{
     /**
      * If no when statement gets executed default to this
      * @param array $settings
-     * @return \Route69\Route
+     * @return Route
      */
     public function otherwise(array $settings){
         $this->routes[] = array(

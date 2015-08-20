@@ -1,8 +1,8 @@
 <?php
 
-namespace Services;
+namespace Object69\Services;
 
-class Env{
+class Env extends Service{
 
     public function set($key, $value){
         $_ENV[$key] = $value;

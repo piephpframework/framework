@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Database69;
+namespace Object69\Modules\Database69;
 
-use App;
-use Modules\Module;
-use Object69;
+use Object69\App;
+use Object69\Modules\Module;
+use Object69\Object69;
 
 class Database69 extends Module{
 

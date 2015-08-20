@@ -1,5 +1,7 @@
 <?php
 
+namespace Object69;
+
 class Scope{
 
     protected $properties = [];

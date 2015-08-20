@@ -1,5 +1,7 @@
 <?php
 
+namespace Object69;
+
 class Call{
 
     protected $scope  = null, $result = null;

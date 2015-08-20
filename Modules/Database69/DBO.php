@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Database69;
+namespace Object69\Modules\Database69;
 
 use Exception;
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace Modules\Route69;
+namespace Object69\Modules\Route69;
 
-use App;
-use Event;
-use Modules\Module;
-use Object69;
+use Object69\App;
+use Object69\Event;
+use Object69\Modules\Module;
+use Object69\Object69;
 use SimpleXMLElement;
 
 class Route69 extends Module{

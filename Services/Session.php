@@ -1,8 +1,8 @@
 <?php
 
-namespace Services;
+namespace Object69\Services;
 
-class Session{
+class Session extends Service{
 
     public function __construct(){
         $use_sessions = isset($_ENV['session']['use']) ? $_ENV['session']['use'] : 'no';
