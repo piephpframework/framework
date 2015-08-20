@@ -47,6 +47,30 @@ class DBO{
     }
 
     /**
+     * Gets a value using a key/value pair
+     * @param mixed $keys
+     * @param string $keyCol
+     * @param string $valCol
+     * @return type
+     */
+    public function value($keys, $keyCol = 'key', $valCol = 'value'){
+        $table = $this->getTable();
+        if($this->db->validName($keyCol) && $this->db->validName($valCol)){
+            $keys         = !is_array($keys) ? [$keys] : $keys;
+            $placeholders = $this->getPlaceholders($keys);
+
+            $query = "select `$keyCol`, `$valCol` from $table where `$keyCol` in($placeholders)";
+
+            $items = $this->db->getAll($query, $keys);
+            $final = [];
+            foreach($items as $value){
+                $final[$value[$keyCol]] = $value[$valCol];
+            }
+            return $final;
+        }
+    }
+
+    /**
      * Inserts items into the database
      * @return int
      */
@@ -83,13 +107,13 @@ class DBO{
         $this->fields = [];
     }
 
-    protected function getPlaceholders(){
-        $vals = array_values($this->fields);
+    protected function getPlaceholders($vals = null){
+        $vals = $vals === null ? array_values($this->fields) : array_values($vals);
         return implode(",", array_pad([], count($vals), "?"));
     }
 
-    protected function getColumns(){
-        $keys = array_keys($this->fields);
+    protected function getColumns($keys = null){
+        $keys = $keys === null ? array_keys($this->fields) : $keys;
         return implode(",", $keys);
     }
 

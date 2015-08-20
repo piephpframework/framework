@@ -146,19 +146,33 @@ class Tpl69 extends Module{
         $tpl = new DOMDocument();
         $tpl->appendChild($tpl->importNode($doc->documentElement, true));
 
-        $root     = Object69::$root;
-        $includes = $tpl->getElementsByTagName('include');
-        for($i = 0; $i < $includes->length;){
-            $node = $includes->item($i);
-            $file = $root . $node->getAttribute('file');
+        $docx = new DOMXPath($tpl);
+
+        $root     = $this->getBase();
+//        $includes = $tpl->getElementsByTagName('include');
+        $includes = $docx->query('//include | //*[@include]');
+        foreach($includes as $node){
+//        for($i = 0; $i < $includes->length;){
+//            $node    = $includes->item($i);
+            $newnode = $this->braces($node, Object69::$rootScope);
+            $file    = $node->getAttribute('file');
+            $is_attr = false;
+            if(empty($file)){
+                $file    = $newnode->getAttribute('include');
+                $is_attr = true;
+            }
 
             $incldoc = new DOMDocument();
 
             libxml_use_internal_errors(true);
-            $incldoc->loadHTMLFile($file, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+            $incldoc->loadHTMLFile($root . $file, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
             libxml_use_internal_errors(false);
-
-            $node->parentNode->replaceChild($tpl->importNode($incldoc->documentElement, true), $node);
+            if($is_attr){
+                $node->removeAttribute('include');
+                $node->appendChild($tpl->importNode($incldoc->documentElement, true));
+            }else{
+                $node->parentNode->replaceChild($tpl->importNode($incldoc->documentElement, true), $node);
+            }
         }
         return $tpl;
     }

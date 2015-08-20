@@ -15,6 +15,7 @@ class Object69{
     public static $services    = [];
     public static $directives  = [];
     public static $root        = null;
+    public static $rootScope   = null;
 
     /**
      *
@@ -45,6 +46,8 @@ class Object69{
                 $obj = $_REQUEST;
             }elseif($path[$i] == '$cookie'){
                 $obj = $_COOKIE;
+            }elseif($path[$i] == '$root'){
+                $obj = Object69::$rootScope;
             }else{
                 $item = ctype_digit($path[$i]) ? (int)$path[$i] : $path[$i];
                 if(is_object($obj)){
@@ -62,6 +65,7 @@ class Object69{
 Object69::$root = filter_input(INPUT_SERVER, 'DOCUMENT_ROOT');
 
 Object69::$services['env'] = new Env();
+Object69::$rootScope       = new RootScope();
 if(isset($_ENV['session']['use']) && $_ENV['session']['use'] == 'yes'){
     Object69::$services['session'] = new Session();
 }
@@ -302,6 +306,8 @@ class App{
         foreach($params as $param){
             if($param->name == 'scope'){
                 $cbParams[] = $scope;
+            }elseif($param->name == 'rootScope'){
+                $cbParams[] = Object69::$rootScope;
             }else{
                 // Inject application classes
                 foreach($this->classes as $index => $class){

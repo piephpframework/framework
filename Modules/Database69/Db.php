@@ -88,13 +88,24 @@ class Db{
 
     /**
      * Gets a row from a query
-     * @param type $query
+     * @param string $query
      * @param array $params
      * @return type
      */
     public function getRow($query, array $params = []){
         $this->query($query, $params);
         return $this->stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Gets the first column from a query
+     * @param string $query
+     * @param array $params
+     * @return type
+     */
+    public function getOne($query, array $params = []){
+        $this->query($query, $params);
+        return $this->stmt->fetchColumn();
     }
 
     /**
