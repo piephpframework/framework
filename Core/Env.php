@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69\Services;
+namespace Object69\Core;
 
 class Env extends Service{
 

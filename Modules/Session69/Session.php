@@ -1,6 +1,8 @@
 <?php
 
-namespace Object69\Services;
+namespace Object69\Modules\Session69;
+
+use Object69\Service;
 
 class Session extends Service{
 
@@ -26,6 +28,10 @@ class Session extends Service{
         if(isset($_SESSION[$key])){
             unset($_SESSION[$key]);
         }
+    }
+
+    public function find($path){
+        return parent::find($_SESSION, $path);
     }
 
 }

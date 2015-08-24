@@ -12,5 +12,5 @@ abstract class Module{
     public
         $app = null;
 
-    abstract public function init(App $parent);
+//    abstract public function init(App $parent);
 }

@@ -5,98 +5,17 @@ namespace Object69\Modules\Tpl69;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
-use Object69\App;
+use Object69\Core\Object69;
 use Object69\Modules\Module;
-use Object69\Object69;
 
 /**
  * @property DOMDocument $doc DOM Document
  */
 class Tpl69 extends Module{
 
-    protected $scope = null;
+    protected $currentScope = null;
 
-    public function init(App $parent){
-        $this->app = Object69::module('Tpl69', []);
-
-        $this->app->routeChange = function ($value) use($parent){
-            if(isset($value[0]['settings']['templateUrl'])){
-                $filename = $this->getRealFile($value);
-
-                $basefile = '';
-                if(isset($value[1]['baseTemplateUrl'])){
-                    $basefile = $this->getBase() . $value[1]['baseTemplateUrl'];
-                }
-                if(isset($value[0]['settings']['baseTemplateUrl'])){
-                    $basefile = $this->getBase() . $value[0]['settings']['baseTemplateUrl'];
-                }
-
-                if(!empty($basefile)){
-                    $doc = new DOMDocument();
-
-                    libxml_use_internal_errors(true);
-                    $doc->loadHTMLFile($basefile, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
-                    libxml_use_internal_errors(false);
-
-                    $newDoc = $this->loadView($doc, $filename);
-                }else{
-                    $newDoc = new DOMDocument();
-
-                    libxml_use_internal_errors(true);
-                    $newDoc->loadHTMLFile($filename, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
-                    libxml_use_internal_errors(false);
-                }
-
-
-                // Include all the files needed
-                $newDoc = $this->incl($newDoc);
-
-                $finaldoc                     = new DOMDocument();
-                $finaldoc->preserveWhiteSpace = false;
-                $finaldoc->formatOutput       = true;
-
-                $finaldoc->appendChild($finaldoc->importNode($newDoc->documentElement, true));
-                $xpath = new DOMXPath($finaldoc);
-
-                /* @var $controller DOMElement */
-                foreach($xpath->query('//*[@controller]') as $controller){
-                    $ctrlName = $controller->getAttribute('controller');
-                    $controller->removeAttribute('controller');
-                    $scope    = $parent->call($ctrlName)->scope();
-
-                    $newctrl = $this->process($controller, $scope);
-
-                    $controller->parentNode->replaceChild($finaldoc->importNode($newctrl, true), $controller);
-
-
-
-//                    var_dump($controller->childNodes->item(1));
-                    // Test repeating items
-//                    $ctrl = $this->repeat($controller, $scope);
-//                    $controller->parentNode->replaceChild($doc->importNode($ctrl, true), $controller);
-//
-//                    // Replace other scopes
-//                    $scope_nodes = $this->scope($controller, $scope);
-//                    foreach($scope_nodes as $scope_node){
-//                        $impNode = $doc->importNode($scope_node, true);
-////                        $parent->replaceChild($impNode, $controller);
-//                    }
-                }
-                $doctype = isset($_ENV['tpl']['doctype']) ? $_ENV['tpl']['doctype'] : "<!doctype html>";
-
-                echo "$doctype\n" . $finaldoc->saveHTML();
-            }
-        };
-
-//        $this->app->cleanup = function(){
-//            echo 'here';
-//        };
-
-        return $this->app;
-    }
-
-    protected function process($controller, $scope){
-
+    public function process($controller, $scope){
         // Bind input values
         $newctrl = $this->bindInputs($controller, $scope);
 
@@ -118,7 +37,7 @@ class Tpl69 extends Module{
      * @param string $filename
      * @return DOMDocument
      */
-    protected function loadView(DOMDocument $doc, $filename){
+    public function loadView(DOMDocument $doc, $filename){
         $tpl   = new DOMDocument();
         $tpl->appendChild($tpl->importNode($doc->documentElement, true));
         $xpath = new DOMXPath($tpl);
@@ -142,7 +61,7 @@ class Tpl69 extends Module{
      * @param DOMDocument $doc
      * @return DOMDocument
      */
-    protected function incl(DOMDocument $doc){
+    public function incl(DOMDocument $doc){
         $tpl = new DOMDocument();
         $tpl->appendChild($tpl->importNode($doc->documentElement, true));
 
@@ -225,16 +144,9 @@ class Tpl69 extends Module{
 
             $doc = new DOMDocument();
             foreach($items as $item){
-//                $appendedNode = $doc->appendChild($doc->importNode($node, true));
-
                 $scopeRepl  = $this->scope($node, $item, true, $vals[0]);
                 $bracesRepl = $this->braces($scopeRepl, $item, true, $vals[0]);
                 $doc->appendChild($doc->importNode($bracesRepl, true));
-
-//                $scopeNode = $appendedNode->parentNode->replaceChild($doc->importNode($bracesRepl, true), $appendedNode);
-//                $scopeRepl = $this->scope($scopeNode, $item, true, $vals[0]);
-//                $scopeNode->parentNode->replaceChild($doc->importNode($scopeRepl, true), $scopeNode);
-//                $appendedNode->parentNode->replaceChild($doc->importNode($this->scope($appendedNode, $item, true, $vals[0]), true), $appendedNode);
             }
 
             $frag = $tpl->createDocumentFragment();
@@ -283,6 +195,7 @@ class Tpl69 extends Module{
         $docx = new DOMXPath($tpl);
         foreach($docx->query('//scope | //*[@scope]') as $scopeNode){
             $content = explode('|', $scopeNode->getAttribute('scope'));
+            /* @var $scopeNode DOMElement */
             $scopeNode->removeAttribute('scope');
             $is_attr = true;
             if(!$content[0] || empty($content[0])){
@@ -309,7 +222,14 @@ class Tpl69 extends Module{
             }
 
             if($is_attr){
-                $scopeNode->nodeValue = $val;
+                if(strlen(strip_tags($val)) != strlen($val)){
+                    $scopeNode->nodeValue = '';
+                    $scopeHtml            = new DOMDocument();
+                    $scopeHtml->loadHTML($val, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+                    $scopeNode->appendChild($tpl->importNode($scopeHtml->documentElement, true));
+                }else{
+                    $scopeNode->nodeValue = $val;
+                }
             }else{
                 $newNode = $tpl->createTextNode($val);
                 $scopeNode->parentNode->replaceChild($newNode, $scopeNode);
@@ -323,20 +243,28 @@ class Tpl69 extends Module{
         foreach($operations as $op){
             $items = explode(":", $op);
             $func  = array_shift($items);
+            array_unshift($items, $value);
+            if(!is_callable($func)){
+                $call = Object69::find($this->currentScope, $func);
+                if(!$call){
+                    $func = Object69::find(Object69::$rootScope, $func);
+                }else{
+                    $func = $call;
+                }
+            }
             if(is_callable($func)){
-                array_unshift($items, $value);
                 $value = call_user_func_array($func, $items);
             }
         }
         return $value;
     }
 
-    protected function getBase(){
+    public function getBase(){
         $base = isset($_ENV['root']['templates']) ? $_ENV['root']['templates'] : '.';
         return strpos($base, '/') === 0 ? $base : $_SERVER['DOCUMENT_ROOT'] . '/' . $base;
     }
 
-    protected function getRealFile($value){
+    public function getRealFile($value){
         $root     = $this->getBase();
         $filename = $root . $value[0]['settings']['templateUrl'];
         if(is_file($filename)){

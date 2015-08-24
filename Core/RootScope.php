@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69;
+namespace Object69\Core;
 
 class RootScope{
 
