@@ -8,10 +8,11 @@ use Object69\Modules\Route69\RouteParams;
 return call_user_func(function(){
     $app = Object69::module('Route69', []);
 
-    $route = new Route();
+    $route       = new Route();
+    $routeParams = new RouteParams();
 
     $app->service('route', $route);
-    $app->service('routeParams', new RouteParams());
+    $app->service('routeParams', $routeParams);
 
 //    $app->exposedClasses = [
 //        'route'       => $route,
@@ -21,8 +22,7 @@ return call_user_func(function(){
     $app->method = strtolower(filter_input(INPUT_SERVER, 'REQUEST_METHOD'));
     $app->path   = $route->pathToArray(filter_input(INPUT_SERVER, 'REQUEST_URI'));
 
-    $app->cleanup = function($parent){
-        $route      = $this->exposedClasses['route'];
+    $app->cleanup = function($parent) use($route){
         $controller = $route->findRoute($this);
         if($controller !== null){
             $parent->exec($controller);
@@ -34,8 +34,7 @@ return call_user_func(function(){
         return $event;
     };
 
-    $app->routeChange = function($value, $parent){
-        $route = $this->exposedClasses['route'];
+    $app->routeChange = function($value, $parent) use($route){
         if(isset($value[0]['settings']['displayAs'])){
             $route->executeController($parent, $value[0]);
         }

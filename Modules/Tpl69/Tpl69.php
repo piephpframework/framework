@@ -259,23 +259,6 @@ class Tpl69 extends Module{
         return $value;
     }
 
-    public function getBase(){
-        $base = isset($_ENV['root']['templates']) ? $_ENV['root']['templates'] : '.';
-        return strpos($base, '/') === 0 ? $base : $_SERVER['DOCUMENT_ROOT'] . '/' . $base;
-    }
-
-    public function getRealFile($value){
-        $root     = $this->getBase();
-        $filename = $root . $value[0]['settings']['templateUrl'];
-        if(is_file($filename)){
-            return $filename;
-        }
-//        $filename = \Object69::$root . '/../' . $value[0]['settings']['templateUrl'];
-//        if(is_file($filename)){
-//            return $filename;
-//        }
-    }
-
 }
 
 foreach(glob(__DIR__ . '/filters/*.php') as $file){

@@ -3,13 +3,15 @@
 use Object69\Core\Object69;
 use Object69\Core\Scope;
 use Object69\Modules\Tpl69\Tpl;
-use Object69\Modules\Tpl69\Tpl69;
 
 return call_user_func(function(){
     $app = Object69::module('Tpl69', []);
 
-    $app->routeChange = function ($value, $parent){
-        $tpl = new Tpl69();
+    $tpl = new Tpl();
+
+    $app->routeChange = function ($value, $parent) use ($tpl){
+
+        $tpl->setParent($parent);
 
         if(isset($value[0]['settings']['templateUrl'])){
             $filename = $tpl->getRealFile($value);
@@ -39,8 +41,6 @@ return call_user_func(function(){
             }
         }
 
-        $tpl = new Tpl($parent);
-
         $directives = $this->getDirectives();
         foreach($directives as $dirName => $directive){
             $tpl->addDirective($dirName, $directive);
@@ -51,7 +51,8 @@ return call_user_func(function(){
             $tpl->processNode($child);
         }
 
-
+        $doctype = isset($_ENV['tpl']['doctype']) ? $_ENV['tpl']['doctype'] : "<!doctype html>";
+        echo "$doctype\n" . $newDoc->saveHTML();
 
 //
 //
@@ -96,12 +97,24 @@ return call_user_func(function(){
 //        }
     };
 
-    $app->directive('controller', function(){
+    $app->directive('controller', function() use ($tpl){
         return [
             'restrict' => 'A',
-            'link'     => function(Scope $scope, DOMElement $element, DOMNamedNodeMap $attrs){
-                $controller = $element->getAttribute('controller');
-                $scope      = $this->call($controller);
+            'link'     => function(Scope $scope, DOMElement $element, $attr) use ($tpl){
+                $scope = $this->call($attr)->scope();
+                $tpl->setScope($scope);
+                $tpl->processNode($element);
+
+//                $newctrl = $tpl->process($controller, $scope);
+            }
+        ];
+    });
+
+    $app->directive('repeat', function(){
+        return [
+            'restrict' => 'A',
+            'link'     => function(Scope $scope, DOMElement $element, $attr){
+                var_dump($scope);
             }
         ];
     });

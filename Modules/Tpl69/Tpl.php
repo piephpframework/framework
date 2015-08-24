@@ -10,20 +10,28 @@ class Tpl{
 
     protected $directives = [];
     protected $parent     = null;
+    protected $scope      = null;
 
-    public function __construct($parent){
+    public function __construct($parent = null){
         $this->parent = $parent;
+        $this->scope  = new Scope();
     }
 
     public function addDirective($name, $value){
         $this->directives[$name] = $value;
     }
 
-    public function processNode(DOMElement $element){
-        foreach($element->childNodes as $node){
-            $this->editNode($node);
-            if($node->hasChildNodes()){
-                $this->processNode($node);
+    public function setScope(Scope $scope){
+        $this->scope = $scope;
+    }
+
+    public function processNode(DOMNode $element){
+        if($element instanceof DOMElement){
+            foreach($element->childNodes as $node){
+                $this->editNode($node);
+                if($node->hasChildNodes()){
+                    $this->processNode($node);
+                }
             }
         }
     }
@@ -35,16 +43,38 @@ class Tpl{
             if(in_array('A', $restrictions) && $element instanceof DOMElement){
                 $attr = $element->getAttribute($name);
                 if($attr){
-                    call_user_func($directive['link'], new Scope(), $element, $element->attributes);
+                    call_user_func($directive['link'], $this->scope, $element, $attr);
                 }
             }
             // Execute Element directives
             elseif(in_array('E', $restrictions) && $element instanceof DOMElement && $name == $element->tagName){
-                echo 'here';
+                $attr = $element->getAttribute($name);
+                call_user_func($directive['link'], $this->scope, $element, $attr);
             }else{
 
             }
         }
+    }
+
+    public function getBase(){
+        $base = isset($_ENV['root']['templates']) ? $_ENV['root']['templates'] : '.';
+        return strpos($base, '/') === 0 ? $base : $_SERVER['DOCUMENT_ROOT'] . '/' . $base;
+    }
+
+    public function getRealFile($value){
+        $root     = $this->getBase();
+        $filename = $root . $value[0]['settings']['templateUrl'];
+        if(is_file($filename)){
+            return $filename;
+        }
+//        $filename = \Object69::$root . '/../' . $value[0]['settings']['templateUrl'];
+//        if(is_file($filename)){
+//            return $filename;
+//        }
+    }
+
+    public function setParent($parent){
+        $this->parent = $parent;
     }
 
 }

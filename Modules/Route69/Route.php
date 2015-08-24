@@ -81,8 +81,9 @@ class Route{
     }
 
     public function findRoute(App $app){
-        $route       = $app->exposedClasses['route'];
-        $routeParams = $app->exposedClasses['routeParams'];
+        $services    = $app->getServices();
+        $route       = $services['route'];
+        $routeParams = $services['routeParams'];
         $path        = $app->path;
         $routes      = $route->getRoutes();
         // Foreach user defined route
@@ -165,7 +166,7 @@ class Route{
         }
 
         // Test if the two items match
-        if($app->exposedClasses['route']->getStrict()){
+        if($app->getServices()['route']->getStrict()){
             return $item1 === $item2;
         }else{
             return strtolower($item1) == strtolower($item2);

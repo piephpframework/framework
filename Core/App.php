@@ -11,15 +11,13 @@ use ReflectionMethod;
  */
 class App{
 
-    public
-        $exposedClasses = [];
     protected
-        $name        = '',
-        $apps        = [],
-        $controllers = [],
-        $directives  = [],
-        $services    = [],
-        $parent      = null;
+            $name        = '',
+            $apps        = [],
+            $controllers = [],
+            $directives  = [],
+            $services    = [],
+            $parent      = null;
 
     public function __construct($name, array $dependencies){
         $this->name = $name;
@@ -169,21 +167,30 @@ class App{
      * @return \Object69\Core\Call
      */
     public function call($name, $parent = null){
-        $parent = $parent === null ? $this->parent : $parent;
-        $call   = null;
+        $parent = $parent === null ? $this : $parent;
+        foreach($parent->getControllers() as $ctrlName => $controller){
+            if($ctrlName == $name){
+                return $parent->runController($controller);
+            }
+        }
         foreach($parent->getApps() as $app){
             if(isset($app->controllers[$name])){
+                echo 'here';
                 if(!$app->controllers[$name]['call']){
-                    $call = $app->runController($app->controllers[$name]);
+                    return $app->runController($app->controllers[$name]);
                 }else{
-                    $call = $app->controllers[$name]['call'];
+                    return $app->controllers[$name]['call'];
                 }
-                if($call instanceof Call){
-                    return $call;
-                }else{
-                    return $app->call($name, $parent->getParent());
-                }
+//                if($call instanceof Call){
+//                    return $call;
+//                }else{
+//                    return $app->call($name, $parent->getParent());
+//                }
             }
+        }
+
+        if($parent->parent !== null){
+            return $parent->call($name, $parent->getParent());
         }
 
 //        if(isset($this->controllers[$name])){
@@ -207,11 +214,10 @@ class App{
 //                }
 //            }
 //        }
-
-        if(!isset($call)){
+//        if(!isset($call)){
 //            return new Call();
-        }
-        return $call;
+//        }
+//        return $call;
     }
 
     public function exec($name){
