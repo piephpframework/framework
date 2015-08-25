@@ -159,7 +159,7 @@ class Route{
                 return false;
             }
             $val     = ltrim($item2, ':@#');
-            $classes = $app->exposedClasses;
+            $classes = $app->getServices();
 
             $classes['routeParams']->$val = $item1;
             return true;

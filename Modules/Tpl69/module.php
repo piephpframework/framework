@@ -3,6 +3,7 @@
 use Object69\Core\Object69;
 use Object69\Core\Scope;
 use Object69\Modules\Tpl69\Tpl;
+use Object69\Modules\Tpl69\TplAttr;
 
 return call_user_func(function(){
     $app = Object69::module('Tpl69', []);
@@ -97,15 +98,15 @@ return call_user_func(function(){
 //        }
     };
 
-    $app->directive('controller', function() use ($tpl){
+    $app->directive('controller', function(){
         return [
             'restrict' => 'A',
-            'link'     => function(Scope $scope, DOMElement $element, $attr) use ($tpl){
-                $scope = $this->call($attr)->scope();
-                $tpl->setScope($scope);
-                $tpl->processNode($element);
-
-//                $newctrl = $tpl->process($controller, $scope);
+            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+                $scope = $this->call($attr->value)->scope();
+                if($scope instanceof Scope){
+                    $attr->tpl->setScope($scope);
+                }
+//                $attr->tpl->processNode($element);
             }
         ];
     });
@@ -113,8 +114,32 @@ return call_user_func(function(){
     $app->directive('repeat', function(){
         return [
             'restrict' => 'A',
-            'link'     => function(Scope $scope, DOMElement $element, $attr){
-                var_dump($scope);
+            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+                $repkeys = array_map('trim', explode('in', $attr->value));
+                $value   = Object69::find($scope, $repkeys[1]);
+                foreach($value as $index => $item){
+                    $sc       = new Scope();
+                    $sc->item = $item;
+                    $attr->tpl->setScope($sc);
+                    $attr->tpl->processNode($element);
+                }
+                $element->removeAttribute('repeat');
+            }
+        ];
+    });
+
+    $app->directive('scope', function(){
+        return [
+            'restrict' => 'AE',
+            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+                $value = Object69::find($scope, $attr->value);
+                if($attr->type == 'A'){
+                    $element->nodeValue = $value;
+                    $element->removeAttribute('scope');
+                }elseif($attr->type == 'E'){
+                    $textNode = $attr->doc->createTextNode($value);
+                    $element->appendChild($textNode);
+                }
             }
         ];
     });

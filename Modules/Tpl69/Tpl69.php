@@ -34,31 +34,6 @@ class Tpl69 extends Module{
     /**
      *
      * @param DOMDocument $doc
-     * @param string $filename
-     * @return DOMDocument
-     */
-    public function loadView(DOMDocument $doc, $filename){
-        $tpl   = new DOMDocument();
-        $tpl->appendChild($tpl->importNode($doc->documentElement, true));
-        $xpath = new DOMXPath($tpl);
-
-        /* @var $node DOMElement */
-        foreach($xpath->query('//*[@view]') as $node){
-            $node->removeAttribute('view');
-            $incldoc = new DOMDocument();
-            libxml_use_internal_errors(true);
-            $incldoc->loadHTMLFile($filename, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
-            libxml_use_internal_errors(false);
-
-            $node->appendChild($tpl->importNode($incldoc->documentElement, true));
-            break;
-        }
-        return $tpl;
-    }
-
-    /**
-     *
-     * @param DOMDocument $doc
      * @return DOMDocument
      */
     public function incl(DOMDocument $doc){

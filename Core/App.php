@@ -12,12 +12,12 @@ use ReflectionMethod;
 class App{
 
     protected
-            $name        = '',
-            $apps        = [],
-            $controllers = [],
-            $directives  = [],
-            $services    = [],
-            $parent      = null;
+        $name        = '',
+        $apps        = [],
+        $controllers = [],
+        $directives  = [],
+        $services    = [],
+        $parent      = null;
 
     public function __construct($name, array $dependencies){
         $this->name = $name;
@@ -167,31 +167,28 @@ class App{
      * @return \Object69\Core\Call
      */
     public function call($name, $parent = null){
-        $parent = $parent === null ? $this : $parent;
-        foreach($parent->getControllers() as $ctrlName => $controller){
+        $current = $parent === null ? $this : $parent;
+        foreach($current->getControllers() as $ctrlName => $controller){
             if($ctrlName == $name){
-                return $parent->runController($controller);
+                return $current->runController($controller);
             }
         }
-        foreach($parent->getApps() as $app){
-            if(isset($app->controllers[$name])){
-                echo 'here';
-                if(!$app->controllers[$name]['call']){
-                    return $app->runController($app->controllers[$name]);
-                }else{
-                    return $app->controllers[$name]['call'];
+        foreach($current->getApps() as $app){
+            foreach($app->getControllers() as $ctrlName => $controller){
+                if($ctrlName == $name){
+                    if(!$controller['call']){
+                        return $app->runController($controller);
+                    }else{
+                        return $controller['call'];
+                    }
                 }
-//                if($call instanceof Call){
-//                    return $call;
-//                }else{
-//                    return $app->call($name, $parent->getParent());
-//                }
             }
         }
 
-        if($parent->parent !== null){
-            return $parent->call($name, $parent->getParent());
+        if($current->parent !== null){
+            return $current->call($name, $current->getParent());
         }
+        return new Call();
 
 //        if(isset($this->controllers[$name])){
 //            if(!$this->controllers[$name]['call']){
@@ -301,51 +298,40 @@ class App{
         $params   = $rf->getParameters();
         $cbParams = [];
         foreach($params as $param){
-            $pname = $param->name;
-            if($pname == 'scope'){
+            if($param->name == 'scope'){
                 $cbParams[] = $scope;
-            }elseif($pname == 'rootScope'){
+            }elseif($param->name == 'rootScope'){
                 $cbParams[] = Object69::$rootScope;
             }else{
-                // Inject Services From Current App
-                foreach($this->getServices() as $serviceName => $service){
-                    if($pname == $serviceName){
-                        $cbParams[] = $service;
-                        break;
-                    }
-                }
-                /* @var $depend App */
-                foreach($this->apps as $depend){
-                    // Inject Exposed Classes
-//                    $clases = $depend->exposedClasses;
-//                    foreach($clases as $className => $class){
-//                        if($pname == $className){
-//                            $cbParams[] = $class;
-//                            break 2;
-//                        }
-//                    }
-                    // Inject Registered Services
-                    $services = $depend->getServices();
-                    foreach($services as $serviceName => $service){
-                        if($pname == $serviceName){
-                            $cbParams[] = $service;
-                            break 2;
-                        }
-                    }
-
-                    // Inject from parent
-//                    $parent = $depend->getParent();
-//                    if($parent instanceof App){
-//                        $items    = $depend->_getCbParams($item);
-//                        var_dump($depend->getName(), $items, $item);
-//                        $cbParams = array_merge($cbParams, $items);
-//                        break 2;
-//                    }
-//                    break;
-                }
+                $cbParams[] = $this->paramLookup($param->name);
             }
         }
         return $cbParams;
+    }
+
+    protected function paramLookup($pname, $parent = null){
+        /* @var $current App */
+        $current = $parent === null ? $this : $parent;
+        // Inject Services From Current App
+        foreach($current->getServices() as $serviceName => $service){
+            if($pname == $serviceName){
+                return $service;
+            }
+        }
+        /* @var $depend App */
+        foreach($current->getApps() as $depend){
+            // Inject Registered Services
+            $services = $depend->getServices();
+            foreach($services as $serviceName => $service){
+                if($pname == $serviceName){
+                    return $service;
+                }
+            }
+        }
+        if($current->parent !== null){
+            return $this->paramLookup($pname, $current->parent);
+        }
+        return null;
     }
 
 }
