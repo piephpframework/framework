@@ -6,6 +6,10 @@ class Scope{
 
     protected $properties = [];
 
+    public function __construct(array $scope = []){
+        $this->properties = $scope;
+    }
+
     public function __set($name, $value){
         $this->properties[$name] = $value;
     }

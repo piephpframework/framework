@@ -6,6 +6,7 @@ use DOMDocument;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
+use Object69\Core\Object69;
 use Object69\Core\Scope;
 
 class Tpl{
@@ -22,6 +23,14 @@ class Tpl{
 
     public function addDirective($name, $value){
         $this->directives[$name] = $value;
+    }
+
+    public function setDirectives($directives){
+        $this->directives = $directives;
+    }
+
+    public function getDirectives(){
+        return $this->directives;
     }
 
     public function setRepeat($value){
@@ -53,8 +62,19 @@ class Tpl{
             $tplAttr      = new TplAttr();
             $tplAttr->tpl = $this;
             $tplAttr->doc = $element->ownerDocument;
+            // Replace the braces within attributes
+            if($element instanceof DOMElement){
+                $this->braces($element, $this->scope);
+            }
+            // Execute Element directives
+            if(in_array('E', $restrictions) && $element instanceof DOMElement && $name == $element->tagName){
+                $tplAttr->type       = 'E';
+                $tplAttr->value      = $element->nodeValue;
+                $tplAttr->attributes = $element->attributes;
+                call_user_func($directive['link'], $this->scope, $element, $tplAttr);
+            }
             // Execute Attribute directives
-            if(in_array('A', $restrictions) && $element instanceof DOMElement){
+            elseif(in_array('A', $restrictions) && $element instanceof DOMElement){
                 $attr = $element->getAttribute($name);
                 if($attr){
                     $tplAttr->type       = 'A';
@@ -62,17 +82,81 @@ class Tpl{
                     $tplAttr->attributes = $element->attributes;
                     call_user_func($directive['link'], $this->scope, $element, $tplAttr);
                 }
-            }
-            // Execute Element directives
-            elseif(in_array('E', $restrictions) && $element instanceof DOMElement && $name == $element->tagName){
-                $tplAttr->type       = 'E';
-                $tplAttr->value      = $element->nodeValue;
-                $tplAttr->attributes = $element->attributes;
-                call_user_func($directive['link'], $this->scope, $element, $tplAttr);
             }else{
 
             }
         }
+    }
+
+    protected function braces(DOMElement $node, $scope){
+        $path  = $node->getNodePath();
+        $xpath = new \DOMXPath($node->ownerDocument);
+        /* @var $scopeNode DOMElement */
+        foreach($xpath->query($path . '[*=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
+            foreach($scopeNode->attributes as $attr){
+                $matches = [];
+                if(preg_match('/\{\{(.+?)\}\}/', $attr->value, $matches)){
+                    $content = array_map('trim', explode('|', $matches[1]));
+                    $find    = array_shift($content);
+                    $val     = Object69::find($scope, $find);
+                    $val     = $this->functions($val, $content, $scope);
+                    $repl    = preg_replace('/\{\{(.+?)\}\}/', $val, $attr->value);
+                    $scopeNode->setAttribute($attr->name, $repl);
+//                    var_dump($doc->documentElement);
+//                    $node->parentNode->replaceChild($node->ownerDocument->importNode($doc->documentElement, true), $node);
+                }
+            }
+        }
+    }
+
+//    protected function braces($node, $scope, $repeater = false, $repeatVal = null){
+//        $doc  = new DOMDocument();
+//        $doc->appendChild($doc->importNode($node, true));
+//        $docx = new DOMXPath($doc);
+//        // find {{*}} items within attributes to be replaced
+//        /* @var $scopeNode DOMElement */
+//        foreach($docx->query('//*[*=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
+//            foreach($scopeNode->attributes as $attr){
+//                $matches = [];
+//                if(preg_match('/\{\{(.+?)\}\}/', $attr->value, $matches)){
+//                    $content = explode('|', $matches[1]);
+//                    if($repeater){
+//                        $content[0] = trim(preg_replace('/^' . $repeatVal . '[\.\[]/', '', $content[0], 1), '.');
+//                    }
+//                    $find = trim(array_shift($content));
+//                    if($find == $repeatVal){
+//                        $val = $scope;
+//                    }else{
+//                        $val = Object69::find($scope, $find);
+//                    }
+//                    $val  = $this->functions($val, $content, $scope);
+//                    $repl = preg_replace('/\{\{(.+?)\}\}/', $val, $attr->value);
+//                    $scopeNode->setAttribute($attr->name, $repl);
+//                }
+//            }
+//        }
+//        return $doc->documentElement;
+//    }
+
+    protected function functions($value, $operations, $scope){
+        $operations = array_map('trim', $operations);
+        foreach($operations as $op){
+            $items = explode(":", $op);
+            $func  = array_shift($items);
+            array_unshift($items, $value);
+            if(!is_callable($func)){
+                $call = Object69::find($scope, $func);
+                if(!$call){
+                    $func = Object69::find(Object69::$rootScope, $func);
+                }else{
+                    $func = $call;
+                }
+            }
+            if(is_callable($func)){
+                $value = call_user_func_array($func, $items);
+            }
+        }
+        return $value;
     }
 
     /**

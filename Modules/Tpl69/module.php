@@ -106,7 +106,7 @@ return call_user_func(function(){
                 if($scope instanceof Scope){
                     $attr->tpl->setScope($scope);
                 }
-//                $attr->tpl->processNode($element);
+                $element->removeAttribute('controller');
             }
         ];
     });
@@ -117,13 +117,20 @@ return call_user_func(function(){
             'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
                 $repkeys = array_map('trim', explode('in', $attr->value));
                 $value   = Object69::find($scope, $repkeys[1]);
-                foreach($value as $index => $item){
-                    $sc       = new Scope();
-                    $sc->item = $item;
-                    $attr->tpl->setScope($sc);
-                    $attr->tpl->processNode($element);
+                $items   = new DOMDocument();
+                $frag    = $items->createDocumentFragment();
+                foreach($value as $item){
+                    $doc = new DOMDocument();
+                    $doc->appendChild($doc->importNode($element, true));
+                    $tpl = new Tpl();
+                    $sc  = new Scope($item);
+                    $tpl->setScope($sc);
+                    $tpl->setDirectives($attr->tpl->getDirectives());
+                    $tpl->processNode($doc->documentElement);
+                    $doc->documentElement->removeAttribute('repeat');
+                    $frag->appendChild($items->importNode($doc->documentElement, true));
                 }
-                $element->removeAttribute('repeat');
+                $element->parentNode->replaceChild($element->ownerDocument->importNode($frag, true), $element);
             }
         ];
     });
@@ -132,13 +139,25 @@ return call_user_func(function(){
         return [
             'restrict' => 'AE',
             'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
-                $value = Object69::find($scope, $attr->value);
+                $repeat = $element->ownerDocument->documentElement->getAttribute('repeat');
+                if($repeat){
+                    $repkeys = array_map('trim', explode('in', $repeat));
+                    if($repkeys[0] == explode('.', $attr->value)[0]){
+                        $find = explode('.', $attr->value);
+                        array_shift($find);
+                        $find = implode('.', $find);
+                    }
+                }else{
+                    $find = $attr->value;
+                }
+                $value = Object69::find($scope, $find);
                 if($attr->type == 'A'){
                     $element->nodeValue = $value;
                     $element->removeAttribute('scope');
                 }elseif($attr->type == 'E'){
                     $textNode = $attr->doc->createTextNode($value);
-                    $element->appendChild($textNode);
+                    var_dump($value);
+                    $element->parentNode->replaceChild($textNode, $element);
                 }
             }
         ];
