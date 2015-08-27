@@ -20,7 +20,7 @@ class Object69{
         return new App($name, $depend);
     }
 
-    public static function find($obj, $path){
+    public static function find($path, $obj){
         for($i = 0, $path = preg_split('/[\[\]\.]/', $path), $len = count($path); $i < $len; $i++){
             if($path[$i] == ''){
                 continue;

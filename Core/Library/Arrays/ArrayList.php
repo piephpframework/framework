@@ -136,7 +136,7 @@ class ArrayList extends Service implements Iterator{
      * @param mixed $expression1,...
      * @return ArrayList
      */
-    public function query($expression1, $expression2 = null){
+    public function find($expression1, $expression2 = null){
         $ors     = func_get_args();
         $objects = $this->items;
         foreach($this->items as $index => $item){
@@ -144,7 +144,7 @@ class ArrayList extends Service implements Iterator{
             $c      = 0;
             foreach($ors as $val){
                 foreach($val as $path => $value){
-                    if($value != parent::find($item, $path)){
+                    if($value != parent::_find($path, $item)){
                         break;
                     }elseif($c == count($ors) - 1){
                         $remove = false;

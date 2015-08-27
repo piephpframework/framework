@@ -2,13 +2,13 @@
 
 namespace Object69\Core;
 
-class Service{
+abstract class Service{
 
     protected $values = [];
 
-    public function find($object = null, $path = ''){
+    protected function _find($path, $object = null){
         $obj = $object === null ? $this->values : $object;
-        return Object69::find($obj, $path);
+        return Object69::find($path, $obj);
     }
 
 }
