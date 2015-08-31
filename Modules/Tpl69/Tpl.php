@@ -89,8 +89,9 @@ class Tpl{
     }
 
     protected function braces(DOMElement $node, $scope){
-        $path  = $node->getNodePath();
-        $xpath = new \DOMXPath($node->ownerDocument);
+        $path   = $node->getNodePath();
+        $xpath  = new \DOMXPath($node->ownerDocument);
+        $repeat = $node->ownerDocument->documentElement->getAttribute('repeat');
         /* @var $scopeNode DOMElement */
         foreach($xpath->query($path . '[*=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
             foreach($scopeNode->attributes as $attr){
@@ -98,9 +99,20 @@ class Tpl{
                 if(preg_match('/\{\{(.+?)\}\}/', $attr->value, $matches)){
                     $content = array_map('trim', explode('|', $matches[1]));
                     $find    = array_shift($content);
-                    $val     = Object69::find($scope, $find);
-                    $val     = $this->functions($val, $content, $scope);
-                    $repl    = preg_replace('/\{\{(.+?)\}\}/', $val, $attr->value);
+                    if($repeat){
+                        $repkeys = array_map('trim', explode('in', $repeat));
+                        if($repkeys[0] == explode('.', $find)[0]){
+                            $find = explode('.', $find);
+                            array_shift($find);
+                            $find = implode('.', $find);
+                        }
+                    }
+                    $val = Object69::find($find, $scope);
+                    if(!$val){
+                        $val = Object69::find($find, $scope->getPareentScope());
+                    }
+                    $val  = $this->functions($val, $content, $scope);
+                    $repl = preg_replace('/\{\{(.+?)\}\}/', $val, $attr->value);
                     $scopeNode->setAttribute($attr->name, $repl);
 //                    var_dump($doc->documentElement);
 //                    $node->parentNode->replaceChild($node->ownerDocument->importNode($doc->documentElement, true), $node);
@@ -138,19 +150,23 @@ class Tpl{
 //        return $doc->documentElement;
 //    }
 
-    protected function functions($value, $operations, $scope){
+    public function functions($value, $operations, Scope $scope){
         $operations = array_map('trim', $operations);
         foreach($operations as $op){
             $items = explode(":", $op);
             $func  = array_shift($items);
             array_unshift($items, $value);
             if(!is_callable($func)){
-                $call = Object69::find($scope, $func);
+                $call = Object69::find($func, $scope);
                 if(!$call){
-                    $func = Object69::find(Object69::$rootScope, $func);
+                    $func = Object69::find($func, Object69::$rootScope);
                 }else{
                     $func = $call;
                 }
+            }
+            if(!$call){
+                $func = Object69::find($op, $scope->getParentScope());
+//                $func = $this->functions($value, $operations, $scope->getParentScope());
             }
             if(is_callable($func)){
                 $value = call_user_func_array($func, $items);
@@ -190,8 +206,12 @@ class Tpl{
     }
 
     public function getRealFile($value){
-        $root     = $this->getBase();
-        $filename = $root . $value[0]['settings']['templateUrl'];
+        $root = $this->getBase();
+        if(is_array($value)){
+            $filename = $root . $value[0]['settings']['templateUrl'];
+        }elseif(is_string($value)){
+            $filename = $root . $value;
+        }
         if(is_file($filename)){
             return $filename;
         }

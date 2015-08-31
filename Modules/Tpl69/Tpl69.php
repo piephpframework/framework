@@ -79,7 +79,7 @@ class Tpl69 extends Module{
         /* @var $node DOMElement */
         foreach($xpath->query('//input[@bind]') as $node){
             $name  = $node->getAttribute('bind');
-            $value = Object69::find($scope, $name);
+            $value = Object69::find($name, $scope);
             if($value){
                 $node->setAttribute('value', $value);
             }
@@ -96,7 +96,7 @@ class Tpl69 extends Module{
         /* @var $node DOMElement */
         foreach($xpath->query('//*[@show]') as $node){
             $show  = $node->getAttribute('show');
-            $found = Object69::find($scope, $show);
+            $found = Object69::find($show, $scope);
             if($found === null){
                 $node->parentNode->removeChild($node);
             }
@@ -115,7 +115,7 @@ class Tpl69 extends Module{
             $repeat = $node->getAttribute('repeat');
             $node->removeAttribute('repeat');
             $vals   = array_map('trim', explode('in', $repeat));
-            $items  = Object69::find($scope, $vals[1]);
+            $items  = Object69::find($vals[1], $scope);
 
             $doc = new DOMDocument();
             foreach($items as $item){
@@ -152,7 +152,7 @@ class Tpl69 extends Module{
                     if($find == $repeatVal){
                         $val = $scope;
                     }else{
-                        $val = Object69::find($scope, $find);
+                        $val = Object69::find($find, $scope);
                     }
                     $val  = $this->functions($val, $content);
                     $repl = preg_replace('/\{\{(.+?)\}\}/', $val, $attr->value);
@@ -183,7 +183,7 @@ class Tpl69 extends Module{
             if($content[0] == $repeatVal){
                 $val = $scope;
             }else{
-                $val = Object69::find($scope, trim($content[0]));
+                $val = Object69::find(trim($content[0]), $scope);
             }
             if(is_array($val)){
                 $val = json_encode($val);
@@ -220,9 +220,9 @@ class Tpl69 extends Module{
             $func  = array_shift($items);
             array_unshift($items, $value);
             if(!is_callable($func)){
-                $call = Object69::find($this->currentScope, $func);
+                $call = Object69::find($func, $this->currentScope);
                 if(!$call){
-                    $func = Object69::find(Object69::$rootScope, $func);
+                    $func = Object69::find($func, Object69::$rootScope);
                 }else{
                     $func = $call;
                 }

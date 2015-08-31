@@ -116,14 +116,14 @@ return call_user_func(function(){
             'restrict' => 'A',
             'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
                 $repkeys = array_map('trim', explode('in', $attr->value));
-                $value   = Object69::find($scope, $repkeys[1]);
+                $value   = Object69::find($repkeys[1], $scope);
                 $items   = new DOMDocument();
                 $frag    = $items->createDocumentFragment();
                 foreach($value as $item){
                     $doc = new DOMDocument();
                     $doc->appendChild($doc->importNode($element, true));
                     $tpl = new Tpl();
-                    $sc  = new Scope($item);
+                    $sc  = new Scope($item, $scope);
                     $tpl->setScope($sc);
                     $tpl->setDirectives($attr->tpl->getDirectives());
                     $tpl->processNode($doc->documentElement);
@@ -139,66 +139,60 @@ return call_user_func(function(){
         return [
             'restrict' => 'AE',
             'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
-                $repeat = $element->ownerDocument->documentElement->getAttribute('repeat');
+                $repeat  = $element->ownerDocument->documentElement->getAttribute('repeat');
+                $content = array_map('trim', explode('|', $attr->value));
                 if($repeat){
                     $repkeys = array_map('trim', explode('in', $repeat));
-                    if($repkeys[0] == explode('.', $attr->value)[0]){
-                        $find = explode('.', $attr->value);
+                    if($repkeys[0] == explode('.', $content[0])[0]){
+                        $find = explode('.', $content[0]);
                         array_shift($find);
                         $find = implode('.', $find);
                     }
                 }else{
-                    $find = $attr->value;
+                    $find = $content[0];
                 }
-                $value = Object69::find($scope, $find);
+                $value = Object69::find($find, $scope);
+                $value = $attr->tpl->functions($value, $content, $scope);
                 if($attr->type == 'A'){
-                    $element->nodeValue = $value;
+                    $element->nodeValue = '';
+                    if(strlen(strip_tags($value)) != strlen($value)){
+                        $htmldoc = new DOMDocument();
+                        $htmldoc->loadHTML($value, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+                        $element->appendChild($element->ownerDocument->importNode($htmldoc->documentElement, true));
+                    }else{
+                        $element->nodeValue = $value;
+                    }
                     $element->removeAttribute('scope');
                 }elseif($attr->type == 'E'){
-                    $textNode = $attr->doc->createTextNode($value);
-                    var_dump($value);
+                    if(strlen(strip_tags($value)) != strlen($value)){
+                        $htmldoc  = new DOMDocument();
+                        $htmldoc->loadHTML($value, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+                        $textNode = $element->ownerDocument->importNode($htmldoc->documentElement, true);
+                    }else{
+                        $textNode = $attr->doc->createTextNode($value);
+                    }
                     $element->parentNode->replaceChild($textNode, $element);
                 }
             }
         ];
     });
 
+    $app->directive('include', function(){
+        return [
+            'restrict' => 'A',
+            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+                $doc      = new DOMDocument();
+                $filename = $attr->tpl->getRealFile($attr->value);
 
-//    $app->directive('include', function(){
-//        return [
-//            'restrict' => 'AE',
-//            'link'     => function(Scope $scope, DOMElement $element, DOMAttr $attrs){
-//                $tpl = new DOMDocument();
-//                $tpl->appendChild($tpl->importNode($element, true));
-//                $docx = new DOMXPath($tpl);
-//
-//                $root     = $this->getBase();
-//                $includes = $docx->query('//include | //*[@include]');
-//                foreach($includes as $node){
-//                    $newnode = $this->braces($node, Object69::$rootScope);
-//                    $file    = $node->getAttribute('file');
-//                    $is_attr = false;
-//                    if(empty($file)){
-//                        $file    = $newnode->getAttribute('include');
-//                        $is_attr = true;
-//                    }
-//
-//                    $incldoc = new DOMDocument();
-//
-//                    libxml_use_internal_errors(true);
-//                    $incldoc->loadHTMLFile($root . $file, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
-//                    libxml_use_internal_errors(false);
-//                    if($is_attr){
-//                        $node->removeAttribute('include');
-//                        $node->appendChild($tpl->importNode($incldoc->documentElement, true));
-//                    }else{
-//                        $node->parentNode->replaceChild($tpl->importNode($incldoc->documentElement, true), $node);
-//                    }
-//                }
-//                return $tpl;
-//            }
-//        ];
-//    });
+                libxml_use_internal_errors(true);
+                $doc->loadHTMLFile($filename, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+                libxml_use_internal_errors(false);
+
+                $element->appendChild($attr->doc->importNode($doc->documentElement, true));
+                $element->removeAttribute('include');
+            }
+        ];
+    });
 
     return $app;
 });
