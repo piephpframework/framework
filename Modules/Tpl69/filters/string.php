@@ -1,21 +1,31 @@
 <?php
 
-function lower($value){
-    return strtolower($value);
-}
+$app->filter('lower', function(){
+    return function ($value){
+        return strtolower($value);
+    };
+});
 
-function upper($value){
-    return strtoupper($value);
-}
+$app->filter('upper', function(){
+    return function ($value){
+        return strtoupper($value);
+    };
+});
 
-function encode($value, $type = 'md5'){
-    return hash($type, $value);
-}
+$app->filter('encode', function(){
+    return function ($value, $type = 'md5'){
+        return hash($type, $value);
+    };
+});
 
-function json($value){
-    return json_encode($value);
-}
+$app->filter('json', function(){
+    return function ($value){
+        return json_encode($value);
+    };
+});
 
-function def($value, $default = ''){
-    return !empty($value) ? $value : $default;
-}
+$app->filter('def', function(){
+    return function ($value, $default = ''){
+        return !empty($value) ? $value : $default;
+    };
+});

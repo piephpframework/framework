@@ -11,7 +11,7 @@ use Object69\Core\Scope;
 
 class Tpl{
 
-    protected $directives = [];
+    protected $directives = [], $filters    = [];
     protected $parent     = null;
     protected $scope      = null;
     protected $repeat     = null;
@@ -29,8 +29,20 @@ class Tpl{
         $this->directives = $directives;
     }
 
+    public function setFilters($filters){
+        $this->filters = $filters;
+    }
+
     public function getDirectives(){
         return $this->directives;
+    }
+
+    public function getFilters(){
+        return $this->filters;
+    }
+
+    public function getParent(){
+        return $this->parent;
     }
 
     public function setRepeat($value){
@@ -153,26 +165,51 @@ class Tpl{
     public function functions($value, $operations, Scope $scope){
         $operations = array_map('trim', $operations);
         foreach($operations as $op){
-            $items = explode(":", $op);
-            $func  = array_shift($items);
+            $items  = explode(":", $op);
+            $func   = array_shift($items);
             array_unshift($items, $value);
-            if(!is_callable($func)){
-                $call = Object69::find($func, $scope);
+            $filter = $this->findFilter($func);
+            if($filter){
+                $func = $filter;
+            }else{
+//            if(isset($this->filters[$func])){
+//                $call = true;
+//                $func = $this->filters[$func];
+//            }else{
+//                var_dump($this->parent->getFilters());
+//            }
+                if(!is_callable($func)){
+                    $call = Object69::find($func, $scope);
+                    if(!$call){
+                        $func = Object69::find($op, $scope->getParentScope());
+                    }else{
+                        $func = $call;
+                    }
+                }
                 if(!$call){
                     $func = Object69::find($func, Object69::$rootScope);
-                }else{
-                    $func = $call;
-                }
-            }
-            if(!$call){
-                $func = Object69::find($op, $scope->getParentScope());
 //                $func = $this->functions($value, $operations, $scope->getParentScope());
+                }
             }
             if(is_callable($func)){
                 $value = call_user_func_array($func, $items);
             }
         }
         return $value;
+    }
+
+    protected function findFilter($filterName, $parent = null){
+        $current = $parent === null ? $this : $parent;
+        $filters = $current->getFilters();
+        foreach($filters as $name => $filter){
+            if($name == $filterName){
+                return $filter;
+            }
+        }
+        if($current->getParent() !== null){
+            return $this->findFilter($filterName, $current->parent);
+        }
+        return null;
     }
 
     /**

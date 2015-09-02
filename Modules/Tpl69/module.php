@@ -11,7 +11,6 @@ return call_user_func(function(){
     $tpl = new Tpl();
 
     $app->routeChange = function ($value, $parent) use ($tpl){
-
         $tpl->setParent($parent);
 
         if(isset($value[0]['settings']['templateUrl'])){
@@ -43,9 +42,10 @@ return call_user_func(function(){
         }
 
         $directives = $this->getDirectives();
-        foreach($directives as $dirName => $directive){
-            $tpl->addDirective($dirName, $directive);
-        }
+        $tpl->setDirectives($directives);
+
+        $filters = $this->getFilters();
+        $tpl->setFilters($filters);
 
         /* @var $child DOMElement */
         foreach($newDoc->childNodes as $child){
@@ -122,10 +122,11 @@ return call_user_func(function(){
                 foreach($value as $item){
                     $doc = new DOMDocument();
                     $doc->appendChild($doc->importNode($element, true));
-                    $tpl = new Tpl();
+                    $tpl = new Tpl($attr->tpl->getParent());
                     $sc  = new Scope($item, $scope);
                     $tpl->setScope($sc);
                     $tpl->setDirectives($attr->tpl->getDirectives());
+                    $tpl->setFilters($attr->tpl->getFilters());
                     $tpl->processNode($doc->documentElement);
                     $doc->documentElement->removeAttribute('repeat');
                     $frag->appendChild($items->importNode($doc->documentElement, true));
@@ -193,6 +194,10 @@ return call_user_func(function(){
             }
         ];
     });
+
+    foreach(glob(__DIR__ . '/filters/*.php') as $file){
+        require_once $file;
+    }
 
     return $app;
 });

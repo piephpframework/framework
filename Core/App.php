@@ -17,6 +17,7 @@ class App{
         $controllers = [],
         $directives  = [],
         $services    = [],
+        $filters     = [],
         $parent      = null;
 
     public function __construct($name, array $dependencies){
@@ -162,6 +163,19 @@ class App{
     }
 
     /**
+     * Creates a filter that can be used in the template tool
+     * @param string $name
+     * @param mixed $object
+     * @return App
+     */
+    public function filter($name, $object){
+        $call                 = $object->bindTo($this, $this);
+        $cbParams             = $this->_getCbParams($object);
+        $this->filters[$name] = call_user_func_array($call, $cbParams);
+        return $this;
+    }
+
+    /**
      * Calls a function
      * @param type $name
      * @return \Object69\Core\Call
@@ -259,6 +273,10 @@ class App{
 
     public function getDirectives(){
         return $this->directives;
+    }
+
+    public function getFilters(){
+        return $this->filters;
     }
 
     public function getApps(){

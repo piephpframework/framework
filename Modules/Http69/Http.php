@@ -4,12 +4,12 @@ namespace Object69\Modules\Http69;
 
 use Exception;
 use Object69\Core\Library\Arrays\ArrayList;
-use Object69\Modules\Http69\Result;
+use Object69\Modules\Http69\HttpResult;
 
 class Http{
 
     protected
-            $handles = [];
+        $handles = [];
 
     public function create(HttpRequest $info){
         if(!filter_var($info->url, FILTER_VALIDATE_URL)){
@@ -54,7 +54,7 @@ class Http{
      * @return ArrayList
      */
     public function exec(){
-        $responses = new ArrayList(Result::class);
+        $responses = new ArrayList(HttpResult::class);
         if($this->handles > 0){
             $mh = curl_multi_init();
             foreach($this->handles as $ch){
@@ -66,19 +66,11 @@ class Http{
                 curl_multi_select($mh);
             }while($running > 0);
 
-//            exit('here');
-//            while($active && $mrc == CURLM_OK){
-//                if(curl_multi_select($mh) != -1){
-//                    do{
-//                        $mrc = curl_multi_exec($mh, $active);
-//                    }while($mrc == CURLM_CALL_MULTI_PERFORM);
-//                }
-//            }
             foreach($this->handles as $ch){
                 $body = curl_multi_getcontent($ch);
                 $info = curl_getinfo($ch);
 
-                $result                        = new Result();
+                $result                        = new HttpResult();
                 $result->body                  = $body;
                 $result->url                   = isset($info['url']) ? $info['url'] : '';
                 $result->contentType           = isset($info['content_type']) ? $info['content_type'] : '';

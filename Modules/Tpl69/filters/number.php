@@ -1,9 +1,13 @@
 <?php
 
-function number($value, $decimals = 0){
-    number_format($value, $decimals);
-}
+$app->filter('number', function(){
+    return function ($value, $decimals = 0){
+        return number_format($value, $decimals);
+    };
+});
 
-function currency($value, $symbol = '$', $decimals = 2){
-    return $symbol . number_format($value, $decimals);
-}
+$app->filter('currency', function(){
+    return function ($value, $symbol = '$', $decimals = 2){
+        return $symbol . number_format($value, $decimals);
+    };
+});

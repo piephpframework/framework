@@ -235,7 +235,3 @@ class Tpl69 extends Module{
     }
 
 }
-
-foreach(glob(__DIR__ . '/filters/*.php') as $file){
-    require_once $file;
-}
