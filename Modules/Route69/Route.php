@@ -2,7 +2,9 @@
 
 namespace Object69\Modules\Route69;
 
+use Exception;
 use Object69\Core\App;
+use Object69\Core\Controller;
 use SimpleXMLElement;
 
 class Route{
@@ -27,7 +29,10 @@ class Route{
      * @param array $settings The settings fo the route
      * @return Route
      */
-    public function when($path, array $settings = null){
+    public function when($path, $settings){
+        if(!is_array($settings) && !($settings instanceof Controller)){
+            throw new Exception('$settings must be either an array or instance of Controller');
+        }
         $this->routes[] = array(
             "path"     => $path,
             "settings" => $settings
@@ -107,9 +112,12 @@ class Route{
                             $route_good = false;
                             break;
                         }
-                        if(isset($r['settings']['controller'])){
-                            $controller = $r['settings']['controller'];
+                        if($r['settings'] instanceof Controller){
+                            $controller = $r['settings'];
                         }
+//                        elseif(isset($r['settings']['controller'])){
+//                            $controller = $r['settings']['controller'];
+//                        }
                         $settings = $r['settings'];
 
                         if($good){
@@ -125,10 +133,11 @@ class Route{
                 }
             }
             if($route_good){
-                return [
-                    'controller' => $controller,
-                    'settings'   => $settings
-                ];
+                return $controller;
+//                return [
+//                    'controller' => $controller,
+//                    'settings'   => $settings
+//                ];
             }
         }
         // Our route was not found, use our fallback
@@ -174,16 +183,26 @@ class Route{
         return false;
     }
 
-    public function executeController(App $parent, array $controller){
-        $result = $parent->execController($controller['controller']);
-        if(isset($controller['settings']['displayAs'])){
-            switch(strtolower($controller['settings']['displayAs'])){
+    public function executeController(App $parent, Controller $controller){
+        $result = $parent->execController($controller);
+
+        $displayAs = null;
+        if(isset($controller->settings['displayAs'])){
+            $displayAs = isset($controller->settings['displayAs']);
+        }elseif(isset($this->getAlways()['displayAs'])){
+            $displayAs = $this->getAlways()['displayAs'];
+        }
+
+        if($displayAs !== null){
+            switch($displayAs){
                 case 'json':
+                    header('Content-Type: application/json');
                     echo json_encode($result);
                     break;
                 case 'xml':
                     $xml = new SimpleXMLElement('<root/>');
                     array_walk_recursive($result, array($xml, 'addChild'));
+                    header('Content-Type: application/xml');
                     echo $xml->asXML();
                     break;
                 default:

@@ -12,21 +12,27 @@ use PDOStatement;
 class Db{
 
     protected
-        $database = '',
-        $hostname = '',
-        $username = '',
-        $password = '',
-        $port     = 3306,
-        $dsn      = 'mysql',
-        $db       = null;
+            $database = '',
+            $hostname = '',
+            $username = '',
+            $password = '',
+            $port     = 3306,
+            $dsn      = 'mysql',
+            $db       = null;
 
     /**
-     * Gets a database object
-     * @param string $table
-     * @return DBO
+     * Loads a database connection
+     * @param type $connection_name
+     * @return Db
      */
-    public function get($table){
-        return new DBO($table, $this);
+    public function load($connection_name){
+        $this->config([
+            'hostname' => $_ENV[$connection_name]['hostname'],
+            'database' => $_ENV[$connection_name]['database'],
+            'username' => $_ENV[$connection_name]['username'],
+            'password' => $_ENV[$connection_name]['password']
+        ]);
+        return $this;
     }
 
     public function config(array $config){
@@ -54,6 +60,18 @@ class Db{
         }catch(Exception $e){
             throw $e;
         }
+    }
+
+    /**
+     * Gets a database object
+     * @param string $table
+     * @return Model
+     */
+    public function get($table){
+        if(strpos($table, '\\') !== false){
+            return new $table($this);
+        }
+        return new Model($this, $table);
     }
 
     /**

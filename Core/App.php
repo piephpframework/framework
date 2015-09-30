@@ -12,13 +12,13 @@ use ReflectionMethod;
 class App{
 
     protected
-        $name        = '',
-        $apps        = [],
-        $controllers = [],
-        $directives  = [],
-        $services    = [],
-        $filters     = [],
-        $parent      = null;
+            $name        = '',
+            $apps        = [],
+            $controllers = [],
+            $directives  = [],
+            $services    = [],
+            $filters     = [],
+            $parent      = null;
 
     public function __construct($name, array $dependencies){
         $this->name = $name;
@@ -112,8 +112,9 @@ class App{
      * @return App
      */
     public function config(callable $callback){
+        $call     = $callback->bindTo($this, $this);
         $cbParams = $this->_getCbParams($callback);
-        call_user_func_array($callback, $cbParams);
+        call_user_func_array($call, $cbParams);
         return $this;
     }
 
@@ -124,18 +125,26 @@ class App{
      * @param string $method
      * @return App
      */
-    public function controller($name, $callback, $method = null){
-        if(is_callable($callback)){
-            $this->controllers[$name]['controller'] = $callback;
-        }elseif(is_string($callback)){
-            $this->controllers[$name]['controller'] = new $callback();
-            $this->controllers[$name]['method']     = $method;
-        }else{
-            throw new Exception('Invalid callback, must be a callable or a string');
+    public function controller($name, $callback){
+        $callname = $name;
+        $pos      = strrpos($name, '\\');
+        if($pos > 0){
+            $callname = substr($name, $pos + 1);
         }
-        $this->controllers[$name]['scope'] = new Scope();
-        $this->controllers[$name]['call']  = null;
-        return $this;
+
+        return $this->controllers[$callname] = new Controller($name, $callback);
+
+//        if(is_callable($callback)){
+//            $this->controllers[$callname]['controller'] = $callback;
+//        }elseif(is_string($callback)){
+//            $this->controllers[$callname]['controller'] = new $name();
+//            $this->controllers[$callname]['method']     = $callback;
+//        }else{
+//            throw new Exception('Invalid callback, must be a callable or a string');
+//        }
+//        $this->controllers[$callname]['scope'] = new Scope();
+//        $this->controllers[$callname]['call']  = null;
+//        return $this;
     }
 
     /**
@@ -145,7 +154,12 @@ class App{
      * @return App
      */
     public function service($name, $object){
-        $this->services[$name] = $object;
+        if(is_callable($object)){
+            $cbParams              = $this->_getCbParams($object);
+            $this->services[$name] = call_user_func_array($object, $cbParams);
+        }else{
+            $this->services[$name] = $object;
+        }
         return $this;
     }
 
@@ -231,26 +245,34 @@ class App{
 //        return $call;
     }
 
-    public function exec($name){
-        if(is_array($name)){
-            $name = $name['controller'];
+    public function exec($controller){
+//        if(is_array($name)){
+//            $name = $name['controller'];
+//        }
+
+        if($controller instanceof Controller){
+            $call = $this->runController($controller);
         }
-        if(isset($this->controllers[$name])){
-            $call = $this->runController($this->controllers[$name]);
-        }else{
+//        if(isset($this->controllers[$name])){
+//            $call = $this->runController($this->controllers[$name]);
+//        }
+        else{
             $call = new Call();
         }
         return $call;
     }
 
-    protected function runController($controller){
+    /**
+     * Runs a controller
+     * @param Controller $controller
+     * @return Call
+     */
+    protected function runController(Controller $controller){
+        $call = null;
         if($controller){
-            $scope              = null;
-            $result             = $this->execController($controller, $scope);
-            $controller['call'] = new Call($scope, $result);
-            $call               = $controller['call'];
-        }else{
-            $call = null;
+            $scope  = null;
+            $result = $this->execController($controller, $scope);
+            $controller->setCall($call   = new Call($scope, $result));
         }
         return $call;
     }
@@ -285,31 +307,30 @@ class App{
 
     /**
      * Runs a particular controller
-     * @param string $controller The controller
+     * @param Controller $controller The controller
      * @param type $scope
      * @return type
      */
-    public function execController($controller, &$scope = null){
+    public function execController(Controller $controller, &$scope = null){
         $cbParams = $this->_getCbParams($controller, $scope);
-        $ctrl     = $controller['controller'];
-        if(is_object($controller['controller']) && isset($controller['method'])){
-            $method = $controller['method'];
-            $result = call_user_func_array([$ctrl, $method], $cbParams);
+        if($controller->method !== null){
+            $result = call_user_func_array([$controller->controller, $controller->method], $cbParams);
         }else{
             $result = call_user_func_array($ctrl, $cbParams);
         }
         return $result;
     }
 
-    protected function _getCbParams($item, &$scope = null){
-        if(is_array($item)){
-            $func  = $item['controller'];
-            $scope = isset($item['scope']) ? $item['scope'] : null;
+    protected function _getCbParams($controller, &$scope = null){
+        if(is_array($controller)){
+            $func  = $controller['controller'];
+            $scope = isset($controller['scope']) ? $controller['scope'] : null;
         }else{
-            $func = $item;
+            $func = $controller;
         }
-        if(is_object($func) && is_array($item) && isset($item['method'])){
-            $rf = new ReflectionMethod($func, $item['method']);
+
+        if($func instanceof Controller && $func->method !== null){
+            $rf = new ReflectionMethod($func->controller, $func->method);
         }else{
             $rf = new ReflectionFunction($func);
         }

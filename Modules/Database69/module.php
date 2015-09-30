@@ -8,9 +8,5 @@ return call_user_func(function(){
 
     $app->service('db', new Db());
 
-//    $app->exposedClasses = [
-//        'db' => new Db()
-//    ];
-
     return $app;
 });

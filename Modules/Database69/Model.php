@@ -3,17 +3,18 @@
 namespace Object69\Modules\Database69;
 
 use Exception;
+use Object69\Modules\Database69\Db;
 
 /**
  * @property Db $db Database Connection
  */
-class DBO{
+class Model{
 
     protected $table  = null;
     protected $db;
     protected $fields = [];
 
-    public function __construct($table, Db $db){
+    public function __construct(Db $db, $table = null){
         $this->table = $table;
         $this->db    = $db;
     }
@@ -47,6 +48,16 @@ class DBO{
     }
 
     /**
+     *
+     * @param string $string
+     * @param array $properties
+     * @return \Object69\Modules\Database69\Raw
+     */
+    public function sub($string, array $properties = []){
+        return new Sub($string, $properties);
+    }
+
+    /**
      * Gets a value using a key/value pair
      * @param mixed $keys
      * @param string $keyCol
@@ -74,7 +85,7 @@ class DBO{
      * Inserts items into the database
      * @return int
      */
-    public function save(){
+    public function save(array $settings = null){
         if(empty($this->fields)){
             return false;
         }
@@ -82,7 +93,9 @@ class DBO{
         $values      = $this->getValues();
         $placeholers = $this->getPlaceholders();
         $table       = $this->getTable();
-        $query       = "insert into $table ($columns) values ($placeholers)";
+        $duplicate   = $this->duplicateKey($settings);
+
+        $query = "insert into $table ($columns) values ($placeholers) $duplicate";
 
         $this->db->query($query, $values);
         $this->reset();
@@ -108,8 +121,19 @@ class DBO{
     }
 
     protected function getPlaceholders($vals = null){
-        $vals = $vals === null ? array_values($this->fields) : array_values($vals);
-        return implode(",", array_pad([], count($vals), "?"));
+        $items = [];
+        foreach(array_values($this->fields) as $field){
+            if($field instanceof Sub){
+                $items[] = $field->getString();
+            }else{
+                $items[] = '?';
+            }
+        }
+
+        return implode(',', $items);
+
+//        $vals = $vals === null ? array_values($this->fields) : array_values($vals);
+//        return implode(",", array_pad([], count($vals), "?"));
     }
 
     protected function getColumns($keys = null){
@@ -121,7 +145,9 @@ class DBO{
         $vals = array_values($this->fields);
         $arr  = [];
         foreach($vals as $val){
-            if(is_array($val)){
+            if($val instanceof Sub){
+                $arr = array_merge($arr, $val->getProperties());
+            }elseif(is_array($val)){
                 $arr = array_merge($arr, $val);
             }else{
                 $arr[] = $val;
@@ -145,6 +171,10 @@ class DBO{
 
         $items = [];
         foreach($keys as $index => $value){
+            if($value instanceof Sub){
+                echo 'here';
+            }
+
             if($vals[$index][0] == '!'){
                 $items[] = "$value != ?";
             }elseif($vals[$index][0] == '>'){
@@ -188,6 +218,23 @@ class DBO{
             return 'order by ' . implode(', ', $dirs);
         }
         return '';
+    }
+
+    protected function duplicateKey(array $settings){
+        if($settings === null || !isset($settings['onDuplicate']) || empty($settings['onDuplicate'])){
+            return '';
+        }
+
+        $str   = 'on duplicate key update';
+        $items = [];
+
+        foreach($settings['onDuplicate'] as $dup){
+            if(!$this->db->validName($dup)){
+                throw new Exception('Invalid column name "' . $dup . '"');
+            }
+            $items[] = $dup . ' = values(' . $dup . ')';
+        }
+        return $str . ' ' . implode(',', $items);
     }
 
 }

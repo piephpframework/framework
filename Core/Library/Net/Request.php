@@ -7,7 +7,8 @@ use Object69\Core\Service;
 class Request extends Service{
 
     /**
-     * Gets the body of the request
+     * Gets the body of the request.<br>
+     * If the request is in a json format then the json will be decoded
      * @return mixed
      */
     public function body(){
