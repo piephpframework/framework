@@ -28,8 +28,11 @@ class RouteParams{
      * @param string $name
      * @return string
      */
-    public function getParameter($name){
-        return $this->parameters[$name];
+    public function getParameter($name, $default = null){
+        if(isset($this->parameters[$name])){
+            return $this->parameters[$name];
+        }
+        return $default;
     }
 
     /**

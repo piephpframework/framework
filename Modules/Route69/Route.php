@@ -133,11 +133,11 @@ class Route{
                 }
             }
             if($route_good){
-                return $controller;
-//                return [
-//                    'controller' => $controller,
-//                    'settings'   => $settings
-//                ];
+                return [
+                    'controller'     => $controller,
+                    'settings'       => $settings,
+                    'globalSettings' => $this->getAlways()
+                ];
             }
         }
         // Our route was not found, use our fallback

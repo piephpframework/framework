@@ -27,15 +27,16 @@ class Controller{
             $call       = null,
             $settings   = [];
 
-    public function __construct($name, $callback){
+    public function __construct($name, $callback, $method){
 
         $this->name = $name;
 
         if(is_callable($callback)){
             $this->controller = $callback;
         }elseif(is_string($callback)){
-            $this->controller = new $name();
-            $this->method     = $callback;
+            $this->controller = new $callback();
+            $method           = $method !== null ? $method : $callback;
+            $this->method     = $method;
         }else{
             throw new Exception('Invalid callback, must be a callable or a string');
         }
@@ -52,6 +53,14 @@ class Controller{
 
     public function setSettings(array $settings){
         $this->settings = $settings;
+    }
+
+    public function setScope(Scope $scope){
+        $this->scope = $scope;
+    }
+
+    public function getScope(){
+        return $this->scope;
     }
 
     public function run(){

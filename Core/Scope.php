@@ -34,6 +34,13 @@ class Scope{
         }
     }
 
+    public function get($key, $default = null){
+        if(isset($this->properties[$key])){
+            return $this->properties[$key];
+        }
+        return $default;
+    }
+
     public function setParentScope(Scope $parentScope){
         $this->parentScope = $parentScope;
     }

@@ -14,11 +14,6 @@ return call_user_func(function(){
     $app->service('route', $route);
     $app->service('routeParams', $routeParams);
 
-//    $app->exposedClasses = [
-//        'route'       => $route,
-//        'routeParams' => new RouteParams()
-//    ];
-
     $app->method = strtolower(filter_input(INPUT_SERVER, 'REQUEST_METHOD'));
     $app->path   = $route->pathToArray(filter_input(INPUT_SERVER, 'REQUEST_URI'));
 
@@ -29,7 +24,7 @@ return call_user_func(function(){
         }
         $event        = new Event();
         $event->name  = 'routeChange';
-        $event->value = [$controller, $route->getAlways()];
+        $event->value = [$controller];
 
         return $event;
     };

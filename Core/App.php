@@ -125,15 +125,16 @@ class App{
      * @param string $method
      * @return App
      */
-    public function controller($name, $callback){
-        $callname = $name;
-        $pos      = strrpos($name, '\\');
-        if($pos > 0){
-            $callname = substr($name, $pos + 1);
-        }
+    public function controller($name, $callback, $method = null){
+//        $callname = $name;
+//        $pos      = strrpos($name, '\\');
+//        if($pos > 0){
+//            $callname = substr($name, $pos + 1);
+//        }
 
-        return $this->controllers[$callname] = new Controller($name, $callback);
-
+        $this->controllers[$name] = new Controller($name, $callback, $method);
+        $this->controllers[$name]->setScope(new Scope());
+        return $this->controllers[$name];
 //        if(is_callable($callback)){
 //            $this->controllers[$callname]['controller'] = $callback;
 //        }elseif(is_string($callback)){
@@ -324,9 +325,12 @@ class App{
     protected function _getCbParams($controller, &$scope = null){
         if(is_array($controller)){
             $func  = $controller['controller'];
-            $scope = isset($controller['scope']) ? $controller['scope'] : null;
+            $scope = $controller['controller']->getScope(); //isset($controller['scope']) ? $controller['scope'] : null;
         }else{
             $func = $controller;
+            if($func instanceof Controller){
+                $scope = $func->getScope();
+            }
         }
 
         if($func instanceof Controller && $func->method !== null){

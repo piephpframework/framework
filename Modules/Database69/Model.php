@@ -4,6 +4,7 @@ namespace Object69\Modules\Database69;
 
 use Exception;
 use Object69\Modules\Database69\Db;
+use Object69\Modules\Database69\ResultSet;
 
 /**
  * @property Db $db Database Connection
@@ -29,7 +30,8 @@ class Model{
 
     /**
      * Gets items from the database
-     * @return stdClass
+     * @param array $settings Extra settings for the query
+     * @return ResultSet
      */
     public function get(array $settings = []){
         $values = $this->getValues();
@@ -213,7 +215,7 @@ class Model{
             foreach($settings['order'] as $column => $dirc){
                 $col    = is_int($column) ? $dirc : $column;
                 $dir    = is_int($column) ? 'asc' : $dirc;
-                $dirs[] = $col . ' ' . $dir;
+                $dirs[] = '`' . $col . '` ' . $dir;
             }
             return 'order by ' . implode(', ', $dirs);
         }

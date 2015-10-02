@@ -97,22 +97,22 @@ class Db{
      * Gets all found items from a query
      * @param type $query
      * @param array $params
-     * @return type
+     * @return ResultSet
      */
     public function getAll($query, array $params = []){
         $this->query($query, $params);
-        return $this->stmt->fetchAll(PDO::FETCH_ASSOC);
+        return new ResultSet($this->stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
     /**
      * Gets a row from a query
      * @param string $query
      * @param array $params
-     * @return type
+     * @return ResultSet
      */
     public function getRow($query, array $params = []){
         $this->query($query, $params);
-        return $this->stmt->fetch(PDO::FETCH_ASSOC);
+        return new ResultSet($this->stmt->fetch(PDO::FETCH_ASSOC));
     }
 
     /**

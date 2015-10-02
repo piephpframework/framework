@@ -11,10 +11,11 @@ use DOMDocument;
 class TplAttr{
 
     public
-        $tpl        = null,
-        $doc        = null,
-        $type       = null,
-        $value      = null,
-        $attributes = null;
+            $tpl        = null,
+            $doc        = null,
+            $type       = null,
+            $value      = null,
+            $attributes = null,
+            $offset     = 0;
 
 }

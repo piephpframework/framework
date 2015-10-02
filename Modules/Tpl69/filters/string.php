@@ -29,3 +29,9 @@ $app->filter('def', function(){
         return !empty($value) ? $value : $default;
     };
 });
+
+$app->filter('nl2br', function(){
+    return function ($value){
+        return nl2br($value);
+    };
+});

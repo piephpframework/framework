@@ -2,6 +2,7 @@
 
 namespace Object69\Modules\Tpl69;
 
+use Closure;
 use DOMDocument;
 use DOMElement;
 use DOMNode;
@@ -15,6 +16,7 @@ class Tpl{
     protected $parent     = null;
     protected $scope      = null;
     protected $repeat     = null;
+    protected $index      = null;
 
     public function __construct($parent = null){
         $this->parent = $parent;
@@ -55,6 +57,14 @@ class Tpl{
 
     public function setScope(Scope $scope){
         $this->scope = $scope;
+    }
+
+    public function setIndex($index){
+        $this->index = $index;
+    }
+
+    public function getIndex(){
+        return $this->index;
     }
 
     public function processNode(DOMNode $element){
@@ -100,7 +110,7 @@ class Tpl{
         }
     }
 
-    protected function braces(DOMElement $node, $scope){
+    protected function braces(DOMElement $node, Scope $scope){
         $path   = $node->getNodePath();
         $xpath  = new \DOMXPath($node->ownerDocument);
         $repeat = $node->ownerDocument->documentElement->getAttribute('repeat');
@@ -108,63 +118,39 @@ class Tpl{
         foreach($xpath->query($path . '[*=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
             foreach($scopeNode->attributes as $attr){
                 $matches = [];
-                if(preg_match('/\{\{(.+?)\}\}/', $attr->value, $matches)){
-                    $content = array_map('trim', explode('|', $matches[1]));
-                    $find    = array_shift($content);
-                    if($repeat){
-                        $repkeys = array_map('trim', explode('in', $repeat));
-                        if($repkeys[0] == explode('.', $find)[0]){
-                            $find = explode('.', $find);
-                            array_shift($find);
-                            $find = implode('.', $find);
+                if(preg_match_all('/\{\{(.+?)\}\}/', $attr->value, $matches)){
+                    $attrVal = $attr->value;
+                    foreach($matches[1] as $match){
+                        $content = array_map('trim', explode('|', $match));
+                        $find    = array_shift($content);
+                        if($repeat){
+                            $repkeys = array_map('trim', explode('in', $repeat));
+                            if(count(explode('.', $find)) == 1 && $repkeys[0] == explode('.', $find)[0]){
+                                $find = $repkeys[1] . '[' . $this->getIndex() . ']';
+                            }if($repkeys[0] == explode('.', $find)[0]){
+                                $find = explode('.', $find);
+                                array_shift($find);
+                                $find = implode('.', $find);
+                            }
+                        }
+                        $val = Object69::find($find, $scope);
+                        if(!$val){
+                            $val = Object69::find($find, $scope->getParentScope());
+                        }
+                        $val = $this->functions($val, $content, $scope);
+                        if(is_string($val)){
+                            $attrVal = preg_replace('/\{\{(.+?)\}\}/', $val, $attrVal, 1);
                         }
                     }
-                    $val = Object69::find($find, $scope);
-                    if(!$val){
-                        $val = Object69::find($find, $scope->getPareentScope());
-                    }
-                    $val  = $this->functions($val, $content, $scope);
-                    $repl = preg_replace('/\{\{(.+?)\}\}/', $val, $attr->value);
-                    $scopeNode->setAttribute($attr->name, $repl);
-//                    var_dump($doc->documentElement);
-//                    $node->parentNode->replaceChild($node->ownerDocument->importNode($doc->documentElement, true), $node);
+                    $scopeNode->setAttribute($attr->name, $attrVal);
                 }
             }
         }
     }
 
-//    protected function braces($node, $scope, $repeater = false, $repeatVal = null){
-//        $doc  = new DOMDocument();
-//        $doc->appendChild($doc->importNode($node, true));
-//        $docx = new DOMXPath($doc);
-//        // find {{*}} items within attributes to be replaced
-//        /* @var $scopeNode DOMElement */
-//        foreach($docx->query('//*[*=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
-//            foreach($scopeNode->attributes as $attr){
-//                $matches = [];
-//                if(preg_match('/\{\{(.+?)\}\}/', $attr->value, $matches)){
-//                    $content = explode('|', $matches[1]);
-//                    if($repeater){
-//                        $content[0] = trim(preg_replace('/^' . $repeatVal . '[\.\[]/', '', $content[0], 1), '.');
-//                    }
-//                    $find = trim(array_shift($content));
-//                    if($find == $repeatVal){
-//                        $val = $scope;
-//                    }else{
-//                        $val = Object69::find($scope, $find);
-//                    }
-//                    $val  = $this->functions($val, $content, $scope);
-//                    $repl = preg_replace('/\{\{(.+?)\}\}/', $val, $attr->value);
-//                    $scopeNode->setAttribute($attr->name, $repl);
-//                }
-//            }
-//        }
-//        return $doc->documentElement;
-//    }
-
     public function functions($value, $operations, Scope $scope){
         $operations = array_map('trim', $operations);
-        foreach($operations as $op){
+        foreach($operations as $index => $op){
             $items  = explode(":", $op);
             $func   = array_shift($items);
             array_unshift($items, $value);
@@ -172,26 +158,30 @@ class Tpl{
             if($filter){
                 $func = $filter;
             }else{
-//            if(isset($this->filters[$func])){
-//                $call = true;
-//                $func = $this->filters[$func];
-//            }else{
-//                var_dump($this->parent->getFilters());
-//            }
                 if(!is_callable($func)){
                     $call = Object69::find($func, $scope);
                     if(!$call){
-                        $func = Object69::find($op, $scope->getParentScope());
+                        $cscope = $scope->getParentScope();
+                        do{
+                            if($cscope === null){
+                                break;
+                            }
+                            $func = Object69::find($op, $cscope);
+                            if($func !== null){
+                                break;
+                            }
+                            $cscope = $cscope->getParentScope();
+                        }while(true);
                     }else{
                         $func = $call;
                     }
                 }
                 if(!$call){
                     $func = Object69::find($func, Object69::$rootScope);
-//                $func = $this->functions($value, $operations, $scope->getParentScope());
                 }
             }
-            if(is_callable($func)){
+//            if(is_callable($func)){
+            if($func instanceof Closure){
                 $value = call_user_func_array($func, $items);
             }
         }
@@ -222,6 +212,10 @@ class Tpl{
         $tpl   = new DOMDocument();
         $tpl->appendChild($tpl->importNode($doc->documentElement, true));
         $xpath = new DOMXPath($tpl);
+
+        if(!is_file($filename)){
+            return $tpl;
+        }
 
         /* @var $node DOMElement */
         foreach($xpath->query('//*[@view]') as $node){

@@ -9,7 +9,7 @@ use Object69\Modules\Http69\HttpResult;
 class Http{
 
     protected
-        $handles = [];
+            $handles = [];
 
     public function create(HttpRequest $info){
         if(!filter_var($info->url, FILTER_VALIDATE_URL)){
@@ -111,6 +111,11 @@ class Http{
 
     public function reset(){
         $this->handles = [];
+    }
+
+    public function redirect($location){
+        header("Location: $location");
+        exit;
     }
 
 }
