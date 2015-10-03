@@ -123,8 +123,9 @@ class Model{
     }
 
     protected function getPlaceholders($vals = null){
-        $items = [];
-        foreach(array_values($this->fields) as $field){
+        $items  = [];
+        $fileds = $vals !== null ? $vals : $this->fields;
+        foreach(array_values($fileds) as $field){
             if($field instanceof Sub){
                 $items[] = $field->getString();
             }else{

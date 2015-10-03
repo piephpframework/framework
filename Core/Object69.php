@@ -44,9 +44,9 @@ class Object69{
             }else{
                 $item = ctype_digit($path[$i]) ? (int)$path[$i] : $path[$i];
                 if(is_object($obj)){
-                    $obj = @$obj->$item;
+                    $obj = $obj->$item;
                 }else{
-                    $obj = @$obj[$item];
+                    $obj = isset($obj[$item]) ? $obj[$item] : '';
                 }
             }
         }

@@ -17,8 +17,8 @@ use Iterator;
 class ResultSet implements Iterator{
 
     protected
-            $items  = [],
-            $length = 0;
+        $items  = [],
+        $length = 0;
 
     public function __construct($items){
         if(is_array($items)){
@@ -32,7 +32,12 @@ class ResultSet implements Iterator{
             case 'length':
                 return count($this->items);
             default:
-                return $this->$name;
+                if(isset($this->items[$name])){
+                    return $this->items[$name];
+                }elseif(isset($this->$name)){
+                    return $this->$name;
+                }
+                return '';
         }
     }
 

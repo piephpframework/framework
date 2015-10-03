@@ -12,13 +12,13 @@ use ReflectionMethod;
 class App{
 
     protected
-            $name        = '',
-            $apps        = [],
-            $controllers = [],
-            $directives  = [],
-            $services    = [],
-            $filters     = [],
-            $parent      = null;
+        $name        = '',
+        $apps        = [],
+        $controllers = [],
+        $directives  = [],
+        $services    = [],
+        $filters     = [],
+        $parent      = null;
 
     public function __construct($name, array $dependencies){
         $this->name = $name;
@@ -205,7 +205,7 @@ class App{
         foreach($current->getApps() as $app){
             foreach($app->getControllers() as $ctrlName => $controller){
                 if($ctrlName == $name){
-                    if(!$controller['call']){
+                    if(($controller instanceof Controller && !$controller->call) || !$controller['call']){
                         return $app->runController($controller);
                     }else{
                         return $controller['call'];
@@ -317,7 +317,7 @@ class App{
         if($controller->method !== null){
             $result = call_user_func_array([$controller->controller, $controller->method], $cbParams);
         }else{
-            $result = call_user_func_array($ctrl, $cbParams);
+            $result = call_user_func_array($controller->controller, $cbParams);
         }
         return $result;
     }
@@ -335,6 +335,8 @@ class App{
 
         if($func instanceof Controller && $func->method !== null){
             $rf = new ReflectionMethod($func->controller, $func->method);
+        }elseif($func instanceof Controller && $func->method === null){
+            $rf = new \ReflectionFunction($func->controller);
         }else{
             $rf = new ReflectionFunction($func);
         }
