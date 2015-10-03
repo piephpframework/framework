@@ -1,6 +1,6 @@
 <?php
 
-$app->filter('todate', function(){
+$app->filter('date', function(){
     return function ($value, $format){
         $time = !ctype_digit($value) ? strtotime($value) : $value;
         switch($format){
