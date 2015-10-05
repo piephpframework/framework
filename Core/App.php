@@ -2,7 +2,6 @@
 
 namespace Object69\Core;
 
-use Exception;
 use ReflectionFunction;
 use ReflectionMethod;
 
@@ -12,13 +11,13 @@ use ReflectionMethod;
 class App{
 
     protected
-        $name        = '',
-        $apps        = [],
-        $controllers = [],
-        $directives  = [],
-        $services    = [],
-        $filters     = [],
-        $parent      = null;
+            $name        = '',
+            $apps        = [],
+            $controllers = [],
+            $directives  = [],
+            $services    = [],
+            $filters     = [],
+            $parent      = null;
 
     public function __construct($name, array $dependencies){
         $this->name = $name;
@@ -193,7 +192,7 @@ class App{
     /**
      * Calls a function
      * @param type $name
-     * @return \Object69\Core\Call
+     * @return Call
      */
     public function call($name, $parent = null){
         $current = $parent === null ? $this : $parent;
