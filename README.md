@@ -34,7 +34,9 @@ In the `php.ini` file that is loaded for your php, find the line `include_path` 
 
 Your include path might look something like this now:
 
-`include_path = ".:/usr/share/php/Object69"`
+```
+include_path = ".:/usr/share/php/Object69"
+```
 
 ### Routing
 
@@ -44,18 +46,22 @@ Routing usually requires that you setup a few server settings, here are settings
 
 With Apache, we can add this to the document root in an `.htaccess` file:
 
-    RewriteEngine On
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule (.*) index.php [L]
+```
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule (.*) index.php [L]
+```
 
 #### Nginx
 
 With Nginx, this usually works without having to do a rewrite, just add this to the `server` section:
 
-    location / {
-        try_files $uri $uri/ /index.php;
-    }
+```
+location / {
+    try_files $uri $uri/ /index.php;
+}
+```
 
 ### Autoloading
 
@@ -72,9 +78,5 @@ You can create an environment settings file anywhere you would like, but it is r
 
 require_once 'path/to/autoloader.php';
 
-$app = Object69::module('Welcome', []);
-
-$app->config(function(Env $env){
-    $env->loadFromFile('/path/to/config.ini');
-});
+Env::loadFromFile('/path/to/config.ini');
 ```
