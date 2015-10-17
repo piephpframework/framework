@@ -48,7 +48,7 @@ $app->filter('reverse', function(){
 /**
  * Encodes a string to a supported hash type
  */
-$app->filter('encode', function(){
+$app->filter('hash', function(){
     return function ($value, $type = 'md5'){
         return hash($type, $value);
     };

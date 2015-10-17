@@ -20,11 +20,9 @@ class ResultSet implements Iterator{
         $items  = [],
         $length = 0;
 
-    public function __construct($items){
-        if(is_array($items)){
-            $this->items  = $items;
-            $this->length = count($items);
-        }
+    public function __construct(array $items = []){
+        $this->items  = $items;
+        $this->length = count($items);
     }
 
     public function __get($name){
@@ -46,6 +44,16 @@ class ResultSet implements Iterator{
             return $this->items[$key];
         }
         return $default;
+    }
+
+    /**
+     *
+     * @param type $value1
+     * @param type $value2
+     * @return \Object69\Modules\Database69\ResultSet
+     */
+    public function add($value1, $value2 = null){
+        return $this;
     }
 
     public function applyFilter($fields, callable $callback){
