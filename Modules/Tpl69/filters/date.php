@@ -29,7 +29,9 @@ $app->filter('date', function(){
                 $format = 'h:i a';
                 break;
             default :
-                $format = 'Y-m-d H:i:s';
+                if($format === null){
+                    $format = 'Y-m-d H:i:s';
+                }
                 break;
         }
         return date($format, $time);
