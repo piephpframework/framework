@@ -62,6 +62,9 @@ return call_user_func(function(){
         echo "$doctype\n" . $newDoc->saveHTML();
     };
 
+    /**
+     * Tells Object69 the name of the controller to use for this template.
+     */
     $app->directive('controller', function(){
         return [
             'restrict' => 'A',
@@ -75,6 +78,9 @@ return call_user_func(function(){
         ];
     });
 
+    /**
+     * Loops through an an array or itteratable class.
+     */
     $app->directive('repeat', function(){
         return [
             'restrict' => 'A',
@@ -105,116 +111,148 @@ return call_user_func(function(){
                 }
                 $element->parentNode->replaceChild($element->ownerDocument->importNode($frag, true), $element);
             }
-                ];
-            });
+        ];
+    });
 
-            $app->directive('implode', function(){
-                return [
-                    'restrict' => 'E',
-                    'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
-                        $repeat = $element->ownerDocument->documentElement->getAttribute('repeat');
-                        if($repeat){
-                            if($attr->tpl->getIndex() + 1 != $attr->tpl->getRepeat()->length){
-                                $txt = $attr->doc->createTextNode($attr->value);
-                                $element->parentNode->replaceChild($txt, $element);
-                            }else{
-                                $element->parentNode->removeChild($element);
-                            }
-                        }
+    /**
+     * uses text as a sperator
+     */
+    $app->directive('implode', function(){
+        return [
+            'restrict' => 'E',
+            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+                $repeat = $element->ownerDocument->documentElement->getAttribute('repeat');
+                if($repeat){
+                    if($attr->tpl->getIndex() + 1 != $attr->tpl->getRepeat()->length){
+                        $txt = $attr->doc->createTextNode($attr->value);
+                        $element->parentNode->replaceChild($txt, $element);
+                    }else{
+                        $element->parentNode->removeChild($element);
                     }
-                ];
-            });
-
-            $app->directive('scope', function(){
-                return [
-                    'restrict' => 'AE',
-                    'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
-                        $repeat  = $element->ownerDocument->documentElement->getAttribute('repeat');
-                        $content = array_map('trim', explode('|', $attr->value));
-                        if($repeat){
-                            $repkeys = array_map('trim', explode('in', $repeat));
-                            if($repkeys[0] == explode('.', $content[0])[0]){
-                                $find = explode('.', $content[0]);
-                                array_shift($find);
-                                $find = implode('.', $find);
-                            }
-                        }else{
-                            $find = $content[0];
-                        }
-                        $value = Object69::find($find, $scope);
-                        if($value === null){
-                            $cscope = $scope->getParentScope();
-                            do{
-                                if($cscope === null){
-                                    break;
-                                }
-                                $value = Object69::find($find, $cscope);
-                                if($value !== null){
-                                    break;
-                                }
-                                $cscope = $cscope->getParentScope();
-                            }while(true);
-                        }
-                        $value = $attr->tpl->functions($value, $content, $scope);
-                        if($attr->type == 'A'){
-                            $element->nodeValue = '';
-                            if(is_string($value) && strlen(strip_tags($value)) != strlen($value)){
-                                $htmldoc = new DOMDocument();
-                                $htmldoc->loadHTML($value, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
-                                $element->appendChild($element->ownerDocument->importNode($htmldoc->documentElement, true));
-                            }elseif($value instanceof Scope){
-                                $element->nodeValue = $value->get(0);
-                            }else{
-                                $element->nodeValue = $value;
-                            }
-                            $element->removeAttribute('scope');
-                        }elseif($attr->type == 'E'){
-                            if(strlen(strip_tags($value)) != strlen($value)){
-                                $htmldoc  = new DOMDocument();
-                                $htmldoc->loadHTML($value, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
-                                $textNode = $element->ownerDocument->importNode($htmldoc->documentElement, true);
-                            }else{
-                                $textNode = $attr->doc->createTextNode($value);
-                            }
-                            $element->parentNode->replaceChild($textNode, $element);
-                        }
-                    }
-                ];
-            });
-
-            $app->directive('include', function(){
-                return [
-                    'restrict' => 'A',
-                    'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
-                        $doc      = new DOMDocument();
-                        $filename = $attr->tpl->getRealFile($attr->value);
-
-                        libxml_use_internal_errors(true);
-                        $doc->loadHTMLFile($filename, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
-                        libxml_use_internal_errors(false);
-
-                        $element->appendChild($attr->doc->importNode($doc->documentElement, true));
-                        $element->removeAttribute('include');
-                    }
-                ];
-            });
-
-            $app->directive('hide', function(){
-                return [
-                    'restrict' => 'A',
-                    'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
-                        $result = false;
-                        eval('$result = (bool)' . $attr->value);
-                        if($result){
-                            $element->parentNode->removeChild($element);
-                        }
-                    }
-                ];
-            });
-
-            foreach(glob(__DIR__ . '/filters/*.php') as $file){
-                require_once $file;
+                }
             }
+        ];
+    });
 
-            return $app;
-        });
+    /**
+     * Uses the data found in the scope to set it's value.
+     * If the scope is an attribute, it will place the data as the tags text.
+     * If the scope is an element, it will replace the element with the text.
+     */
+    $app->directive('scope', function(){
+        return [
+            'restrict' => 'AE',
+            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+                $repeat  = $element->ownerDocument->documentElement->getAttribute('repeat');
+                $content = array_map('trim', explode('|', $attr->value));
+                if($repeat){
+                    $find = repeatFinder($repeat, $content);
+                }else{
+                    $find = $content[0];
+                }
+                $value = Object69::find($find, $scope);
+                if($value === null){
+                    $cscope = $scope->getParentScope();
+                    do{
+                        if($cscope === null){
+                            break;
+                        }
+                        $value = Object69::find($find, $cscope);
+                        if($value !== null){
+                            break;
+                        }
+                        $cscope = $cscope->getParentScope();
+                    }while(true);
+                }
+                $value = $attr->tpl->functions($value, $content, $scope);
+                if($attr->type == 'A'){
+                    $element->nodeValue = '';
+                    if(is_string($value) && strlen(strip_tags($value)) != strlen($value)){
+                        $htmldoc = new DOMDocument();
+                        $htmldoc->loadHTML($value, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+                        $element->appendChild($element->ownerDocument->importNode($htmldoc->documentElement, true));
+                    }elseif($value instanceof Scope){
+                        $element->nodeValue = $value->get(0);
+                    }else{
+                        $element->nodeValue = $value;
+                    }
+                    $element->removeAttribute('scope');
+                }elseif($attr->type == 'E'){
+                    if(strlen(strip_tags($value)) != strlen($value)){
+                        $htmldoc  = new DOMDocument();
+                        $htmldoc->loadHTML($value, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+                        $textNode = $element->ownerDocument->importNode($htmldoc->documentElement, true);
+                    }else{
+                        $textNode = $attr->doc->createTextNode($value);
+                    }
+                    $element->parentNode->replaceChild($textNode, $element);
+                }
+            }
+        ];
+    });
+
+    /**
+     * Includes a file and adds it to the dom at that location
+     */
+    $app->directive('include', function(){
+        return [
+            'restrict' => 'A',
+            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+                $doc      = new DOMDocument();
+                $filename = $attr->tpl->getRealFile($attr->value);
+
+                libxml_use_internal_errors(true);
+                $doc->loadHTMLFile($filename, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+                libxml_use_internal_errors(false);
+
+                $element->appendChild($attr->doc->importNode($doc->documentElement, true));
+                $element->removeAttribute('include');
+            }
+        ];
+    });
+
+    /**
+     * Removes an element and its children if the condition is true
+     */
+    $app->directive('hide', function(){
+        return [
+            'restrict' => 'A',
+            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+                $repeat  = $element->ownerDocument->documentElement->getAttribute('repeat');
+                $content = array_map('trim', explode('|', $attr->value));
+                if($repeat){
+                    $find = repeatFinder($repeat, $content);
+                }else{
+                    $find = $content[0];
+                }
+                $find = Object69::find($find, $scope);
+                $result = false;
+                if(!empty($find)){
+                    eval('$result = (bool)(' . $find . ');');
+                }
+                if($result){
+                    $element->parentNode->removeChild($element);
+                }else{
+                    $element->removeAttribute('hide');
+                }
+            }
+        ];
+    });
+
+    foreach(glob(__DIR__ . '/filters/*.php') as $file){
+        require_once $file;
+    }
+
+    function repeatFinder($repeat, $content){
+        $repkeys = array_map('trim', explode('in', $repeat));
+        $find = '';
+        if($repkeys[0] == explode('.', $content[0])[0]){
+            $find = explode('.', $content[0]);
+            array_shift($find);
+            $find = implode('.', $find);
+        }
+        return $find;
+    }
+
+    return $app;
+});
