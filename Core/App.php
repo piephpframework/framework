@@ -321,6 +321,10 @@ class App{
         return $result;
     }
 
+    public function getCallbackArgs($controller, &$scope = null){
+        return $this->_getCbParams($controller, $scope);
+    }
+
     protected function _getCbParams($controller, &$scope = null){
         if(is_array($controller)){
             $func  = $controller['controller'];

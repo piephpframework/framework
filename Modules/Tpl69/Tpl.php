@@ -9,6 +9,7 @@ use DOMNode;
 use DOMXPath;
 use Object69\Core\Object69;
 use Object69\Core\Scope;
+use Object69\Modules\Tpl69\Element;
 
 class Tpl{
 
@@ -76,10 +77,10 @@ class Tpl{
     public function processNode(DOMNode $element){
         if($element instanceof DOMElement){
             foreach($element->childNodes as $node){
-                $this->editNode($node);
                 if($node->hasChildNodes()){
                     $this->processNode($node);
                 }
+                $this->editNode($node);
             }
         }
     }
@@ -101,18 +102,24 @@ class Tpl{
                 }else{
                     $element = new Element($node);
                 }
-                $tplAttr->type       = 'E';
-                $tplAttr->value      = $node->nodeValue;
-                $tplAttr->attributes = $node->attributes;
-                call_user_func_array($directive['link'], [$this->scope, $element, $tplAttr]);
+                if(isset($directive['controller']) && $directive['controller'] instanceof Closure){
+                    $scope = new Scope();
+                    $result = $this->parent->getCallbackArgs($directive['controller'], $scope);
+                    call_user_func_array($directive['controller'], $result);
+                }
+                if(isset($directive['link'])){
+                    $tplAttr->type       = 'E';
+                    $tplAttr->value      = $node->nodeValue;
+                    $tplAttr->attributes = $node->attributes;
+                    call_user_func_array($directive['link'], [$this->scope, $element, $tplAttr]);
+                }
                 if(isset($directive['templateUrl'])){
-                    $tpl = new Tpl($this->parent);
-                    $tpl->setScope($this->scope);
+                    $tpl = new Tpl($tplAttr->tpl->getParent());
+                    $tpl->setScope($scope);
                     $tpl->setDirectives($this->directives);
-                    foreach($element->getElement()->childNodes as $child){
-                        $tpl->processNode($child);
-                    }
-                    $newNode = $node->ownerDocument->importNode($element->getElement(), true);
+                    $tpl->setFilters($this->filters);
+                    $tpl->processNode($element->node);
+                    $newNode = $node->ownerDocument->importNode($element->node, true);
                     $node->parentNode->replaceChild($newNode, $node);
                 }
             }
@@ -213,7 +220,6 @@ class Tpl{
                     $func = Object69::find($func, Object69::$rootScope);
                 }
             }
-//            if(is_callable($func)){
             if($func instanceof Closure){
                 $value = call_user_func_array($func, $items);
             }
@@ -236,11 +242,11 @@ class Tpl{
     }
 
     /**
-     *
-     * @param DOMDocument $doc
-     * @param string $filename
-     * @return DOMDocument
-     */
+    *
+    * @param DOMDocument $doc
+    * @param string $filename
+    * @return DOMDocument
+    */
     public function loadView(DOMDocument $doc, $filename){
         $tpl   = new DOMDocument();
         $tpl->appendChild($tpl->importNode($doc->documentElement, true));

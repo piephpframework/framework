@@ -7,19 +7,21 @@ use DOMXPath;
 use DOMNode;
 use Object69\Core\Library\Arrays\ArrayList;
 
-class Element extends DOMElement{
+class Element{
 
-    protected $element;
+    protected $node;
     protected $text;
 
     public function __construct(DOMElement $element){
-        $this->element = $element;
+        $this->node = $element;
     }
 
     public function __get($name){
         switch($name){
             case 'text':
-                return $this->element->nodeValue;
+                return $this->node->nodeValue;
+            case 'node':
+                return $this->node;
         }
     }
 
@@ -29,7 +31,7 @@ class Element extends DOMElement{
 
     public function replace($value){
         $newNode = $this->newNode($value);
-        $this->element = $this->element->parentNode->replaceChild($newNode, $this->element);
+        $this->node = $this->element->parentNode->replaceChild($newNode, $this->element);
         return $this;
     }
 

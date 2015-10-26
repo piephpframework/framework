@@ -4,6 +4,7 @@ use Object69\Core\Object69;
 use Object69\Core\Scope;
 use Object69\Modules\Tpl69\RepeatInfo;
 use Object69\Modules\Tpl69\Tpl;
+use Object69\Modules\Tpl69\Element;
 use Object69\Modules\Tpl69\TplAttr;
 
 return call_user_func(function(){
@@ -76,12 +77,12 @@ return call_user_func(function(){
     $app->directive('controller', function(){
         return [
             'restrict' => 'A',
-            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+            'link'     => function(Scope $scope, Element $element, TplAttr $attr){
                 $scope = $this->call($attr->value)->scope();
                 if($scope instanceof Scope){
                     $attr->tpl->setScope($scope);
                 }
-                $element->removeAttribute('controller');
+                $element->node->removeAttribute('controller');
             }
         ];
     });
@@ -92,7 +93,7 @@ return call_user_func(function(){
     $app->directive('repeat', function(){
         return [
             'restrict' => 'A',
-            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+            'link'     => function(Scope $scope, Element $element, TplAttr $attr){
                 $repkeys = array_map('trim', explode('in', $attr->value));
                 $value   = Object69::find($repkeys[1], $scope);
                 $items   = new DOMDocument();
@@ -117,7 +118,7 @@ return call_user_func(function(){
                         $frag->appendChild($items->importNode($doc->documentElement, true));
                     }
                 }
-                $element->parentNode->replaceChild($element->ownerDocument->importNode($frag, true), $element);
+                $element->node->parentNode->replaceChild($element->node->ownerDocument->importNode($frag, true), $element);
             }
         ];
     });
@@ -128,14 +129,14 @@ return call_user_func(function(){
     $app->directive('implode', function(){
         return [
             'restrict' => 'E',
-            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
-                $repeat = $element->ownerDocument->documentElement->getAttribute('repeat');
+            'link'     => function(Scope $scope, Element $element, TplAttr $attr){
+                $repeat = $element->node->ownerDocument->documentElement->getAttribute('repeat');
                 if($repeat){
                     if($attr->tpl->getIndex() + 1 != $attr->tpl->getRepeat()->length){
                         $txt = $attr->doc->createTextNode($attr->value);
-                        $element->parentNode->replaceChild($txt, $element);
+                        $element->node->parentNode->replaceChild($txt, $element);
                     }else{
-                        $element->parentNode->removeChild($element);
+                        $element->node->parentNode->removeChild($element);
                     }
                 }
             }
@@ -150,8 +151,8 @@ return call_user_func(function(){
     $app->directive('scope', function(){
         return [
             'restrict' => 'AE',
-            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
-                $repeat  = $element->ownerDocument->documentElement->getAttribute('repeat');
+            'link'     => function(Scope $scope, Element $element, TplAttr $attr){
+                $repeat  = $element->node->ownerDocument->documentElement->getAttribute('repeat');
                 $content = array_map('trim', explode('|', $attr->value));
                 if($repeat){
                     $find = repeatFinder($repeat, $content);
@@ -174,26 +175,26 @@ return call_user_func(function(){
                 }
                 $value = $attr->tpl->functions($value, $content, $scope);
                 if($attr->type == 'A'){
-                    $element->nodeValue = '';
+                    $element->node->nodeValue = '';
                     if(is_string($value) && strlen(strip_tags($value)) != strlen($value)){
                         $htmldoc = new DOMDocument();
                         $htmldoc->loadHTML($value, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
-                        $element->appendChild($element->ownerDocument->importNode($htmldoc->documentElement, true));
+                        $element->node->appendChild($element->node->ownerDocument->importNode($htmldoc->documentElement, true));
                     }elseif($value instanceof Scope){
-                        $element->nodeValue = $value->get(0);
+                        $element->node->nodeValue = $value->get(0);
                     }else{
-                        $element->nodeValue = $value;
+                        $element->node->nodeValue = $value;
                     }
-                    $element->removeAttribute('scope');
+                    $element->node->removeAttribute('scope');
                 }elseif($attr->type == 'E'){
                     if(strlen(strip_tags($value)) != strlen($value)){
                         $htmldoc  = new DOMDocument();
                         $htmldoc->loadHTML($value, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
-                        $textNode = $element->ownerDocument->importNode($htmldoc->documentElement, true);
+                        $textNode = $element->node->ownerDocument->importNode($htmldoc->documentElement, true);
                     }else{
                         $textNode = $attr->doc->createTextNode($value);
                     }
-                    $element->parentNode->replaceChild($textNode, $element);
+                    $element->node->parentNode->replaceChild($textNode, $element);
                 }
             }
         ];
@@ -205,7 +206,7 @@ return call_user_func(function(){
     $app->directive('include', function(){
         return [
             'restrict' => 'A',
-            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
+            'link'     => function(Scope $scope, Element $element, TplAttr $attr){
                 $doc      = new DOMDocument();
                 $filename = $attr->tpl->getRealFile($attr->value);
 
@@ -213,8 +214,8 @@ return call_user_func(function(){
                 $doc->loadHTMLFile($filename, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
                 libxml_use_internal_errors(false);
 
-                $element->appendChild($attr->doc->importNode($doc->documentElement, true));
-                $element->removeAttribute('include');
+                $element->node->appendChild($attr->doc->importNode($doc->documentElement, true));
+                $element->node->removeAttribute('include');
             }
         ];
     });
@@ -225,8 +226,8 @@ return call_user_func(function(){
     $app->directive('hide', function(){
         return [
             'restrict' => 'A',
-            'link'     => function(Scope $scope, DOMElement $element, TplAttr $attr){
-                $repeat  = $element->ownerDocument->documentElement->getAttribute('repeat');
+            'link'     => function(Scope $scope, Element $element, TplAttr $attr){
+                $repeat  = $element->node->ownerDocument->documentElement->getAttribute('repeat');
                 $content = array_map('trim', explode('|', $attr->value));
                 if($repeat){
                     $find = repeatFinder($repeat, $content);
@@ -239,9 +240,9 @@ return call_user_func(function(){
                     eval('$result = (bool)(' . $find . ');');
                 }
                 if($result){
-                    $element->parentNode->removeChild($element);
+                    $element->node->parentNode->removeChild($element);
                 }else{
-                    $element->removeAttribute('hide');
+                    $element->node->removeAttribute('hide');
                 }
             }
         ];

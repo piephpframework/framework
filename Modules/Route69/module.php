@@ -33,7 +33,7 @@ return call_user_func(function(){
     $app->routeChange = function($value, $parent) use($route){
         if(isset($route->getAlways()['displayAs']) || isset($value[0]['settings']['displayAs'])){
             $controller = $value[0];
-            if(is_string($value[0]['settings']['controller'])){
+            if(!($controller instanceof Controller) && is_string($value[0]['settings']['controller'])){
                 $controllerName = $value[0]['settings']['controller'];
                 $method = $value[0]['settings']['method'];
                 $name = $controllerName . '.' . $method;
