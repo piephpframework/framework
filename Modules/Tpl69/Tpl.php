@@ -97,11 +97,7 @@ class Tpl{
             }
             // Execute Element directives
             if(in_array('E', $restrictions) && $node instanceof DOMElement && $name == $node->tagName){
-                if(isset($directive['templateUrl'])){
-                    $element = $this->loadDirectiveTemplate($directive);
-                }else{
-                    $element = new Element($node);
-                }
+                $element = $this->getElement($directive);
                 $scope = $this->directiveController($directive);
                 $this->directiveLink($directive, $element, $node, 'E', $scope, $tplAttr, $node->nodeValue);
                 $this->directiveTemplate($directive, $element, $node, $scope);
@@ -110,11 +106,7 @@ class Tpl{
             elseif(in_array('A', $restrictions) && $node instanceof DOMElement){
                 $attr = $node->getAttribute($name);
                 if($attr){
-                    if(isset($directive['templateUrl'])){
-                        $element = $this->loadDirectiveTemplate($directive);
-                    }else{
-                        $element = new Element($node);
-                    }
+                    $element = $this->getElement($directive);
                     $scope = $this->directiveController($directive);
                     $this->directiveLink($directive, $element, $node, 'A', $scope, $tplAttr, $attr);
                     $this->directiveTemplate($directive, $element, $node, $scope);
@@ -125,9 +117,17 @@ class Tpl{
         }
     }
 
+    protected function getElement($directive){
+        if(isset($directive['templateUrl'])){
+            return $this->loadDirectiveTemplate($directive);
+        }else{
+            return new Element($node);
+        }
+    }
+
     protected function directiveController($directive){
         if(isset($directive['controller']) && $directive['controller'] instanceof Closure){
-            $scope = new Scope();
+            $scope  = new Scope();
             $result = $this->parent->getCallbackArgs($directive['controller'], $scope);
             call_user_func_array($directive['controller'], $result);
             return $scope;
