@@ -87,7 +87,7 @@ class Tpl{
 
     public function editNode(DOMNode $node){
         foreach($this->directives as $name => $directive){
-            $restrictions = str_split($directive['restrict']);
+            $restrictions = isset($directive['restrict']) ? str_split($directive['restrict']) : ['A', 'E'];
             $tplAttr      = new TplAttr();
             $tplAttr->tpl = $this;
             $tplAttr->doc = $node->ownerDocument;
@@ -103,7 +103,7 @@ class Tpl{
                     $element = new Element($node);
                 }
                 $scope = $this->directiveController($directive);
-                $this->directiveLink($directive, $element, $node, 'E', $scope, $tplAttr);
+                $this->directiveLink($directive, $element, $node, 'E', $scope, $tplAttr, $node->nodeValue);
                 $this->directiveTemplate($directive, $element, $node, $scope);
             }
             // Execute Attribute directives
@@ -118,11 +118,6 @@ class Tpl{
                     $scope = $this->directiveController($directive);
                     $this->directiveLink($directive, $element, $node, 'A', $scope, $tplAttr, $attr);
                     $this->directiveTemplate($directive, $element, $node, $scope);
-                    // $tplAttr->type       = 'A';
-                    // $tplAttr->value      = $attr;
-                    // $tplAttr->attributes = $node->attributes;
-                    // $element = new Element($node);
-                    // call_user_func_array($directive['link'], [$this->scope, $element, $tplAttr]);
                 }
             }else{
 
@@ -140,10 +135,10 @@ class Tpl{
         return $this->scope;
     }
 
-    protected function directiveLink($directive, $element, $node, $type, $scope, $tplAttr, $attr = ''){
+    protected function directiveLink($directive, $element, $node, $type, $scope, $tplAttr, $value){
         if(isset($directive['link'])){
             $tplAttr->type       = $type;
-            $tplAttr->value      = $type == 'E' ? $node->nodeValue : $attr;
+            $tplAttr->value      = $value;
             $tplAttr->attributes = $node->attributes;
             call_user_func_array($directive['link'], [$scope, $element, $tplAttr]);
         }
