@@ -19,7 +19,7 @@ class App{
             $filters     = [],
             $parent      = null;
 
-    public function __construct($name, array $dependencies){
+    public function __construct($name, array $dependencies = []){
         $this->name = $name;
         $apps       = [];
 

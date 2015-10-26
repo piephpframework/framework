@@ -4,7 +4,8 @@
 $_ENV = [
     'root'    => [
         'source'    => '.',
-        'templates' => '.'
+        'templates' => '.',
+        'modules'   => '.'
     ],
     'session' => [
         'use' => 'no'

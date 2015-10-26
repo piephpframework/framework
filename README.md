@@ -30,7 +30,7 @@ $app->call('Welcome');
 
 ### Change PHP Include Path (Optional)
 
-In the `php.ini` file that is loaded for your php, find the line `include_path` and append the path to the `Object69` framework. Lets assume that you put the framework here `/usr/share/php/Object69` in just append that to the `include_path` prefixed with a `:`
+In the `php.ini` file that is loaded for your php, find the line `include_path` and append the path to the `Object69` framework. Lets assume that you put the framework here `/usr/share/php/Object69` we then just append that to the `include_path` prefixed with a `:`
 
 Your include path might look something like this now:
 

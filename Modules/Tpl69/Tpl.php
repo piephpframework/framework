@@ -27,6 +27,12 @@ class Tpl{
         $this->directives[$name] = $value;
     }
 
+    public function addDirectives($directives){
+        foreach($directives as $name => $value){
+            $this->directives[$name] = $value;
+        }
+    }
+
     public function setDirectives($directives){
         $this->directives = $directives;
     }
@@ -78,36 +84,63 @@ class Tpl{
         }
     }
 
-    public function editNode(DOMNode $element){
+    public function editNode(DOMNode $node){
         foreach($this->directives as $name => $directive){
             $restrictions = str_split($directive['restrict']);
             $tplAttr      = new TplAttr();
             $tplAttr->tpl = $this;
-            $tplAttr->doc = $element->ownerDocument;
+            $tplAttr->doc = $node->ownerDocument;
             // Replace the braces within attributes
-            if($element instanceof DOMElement){
-                $this->braces($element, $this->scope);
+            if($node instanceof DOMElement){
+                $this->braces($node, $this->scope);
             }
             // Execute Element directives
-            if(in_array('E', $restrictions) && $element instanceof DOMElement && $name == $element->tagName){
+            if(in_array('E', $restrictions) && $node instanceof DOMElement && $name == $node->tagName){
+                if(isset($directive['templateUrl'])){
+                    $element = $this->loadDirectiveTemplate($directive);
+                }else{
+                    $element = new Element($node);
+                }
                 $tplAttr->type       = 'E';
-                $tplAttr->value      = $element->nodeValue;
-                $tplAttr->attributes = $element->attributes;
-                call_user_func($directive['link'], $this->scope, $element, $tplAttr);
+                $tplAttr->value      = $node->nodeValue;
+                $tplAttr->attributes = $node->attributes;
+                call_user_func_array($directive['link'], [$this->scope, $element, $tplAttr]);
+                if(isset($directive['templateUrl'])){
+                    $tpl = new Tpl($this->parent);
+                    $tpl->setScope($this->scope);
+                    $tpl->setDirectives($this->directives);
+                    foreach($element->getElement()->childNodes as $child){
+                        $tpl->processNode($child);
+                    }
+                    $newNode = $node->ownerDocument->importNode($element->getElement(), true);
+                    $node->parentNode->replaceChild($newNode, $node);
+                }
             }
             // Execute Attribute directives
-            elseif(in_array('A', $restrictions) && $element instanceof DOMElement){
-                $attr = $element->getAttribute($name);
+            elseif(in_array('A', $restrictions) && $node instanceof DOMElement){
+                $attr = $node->getAttribute($name);
                 if($attr){
                     $tplAttr->type       = 'A';
                     $tplAttr->value      = $attr;
-                    $tplAttr->attributes = $element->attributes;
-                    call_user_func($directive['link'], $this->scope, $element, $tplAttr);
+                    $tplAttr->attributes = $node->attributes;
+                    $element = new Element($node);
+                    call_user_func_array($directive['link'], [$this->scope, $element, $tplAttr]);
                 }
             }else{
 
             }
         }
+    }
+
+    protected function loadDirectiveTemplate($directive){
+        $filename = $this->getRealFile($directive['templateUrl']);
+        $doc = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $doc->loadHTMLFile($filename, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+        libxml_use_internal_errors(false);
+        $tempNode = $doc->documentElement;
+        $element = new Element($tempNode);
+        return $element;
     }
 
     protected function braces(DOMElement $node, Scope $scope){

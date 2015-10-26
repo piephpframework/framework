@@ -50,6 +50,14 @@ return call_user_func(function(){
         $directives = $this->getDirectives();
         $tpl->setDirectives($directives);
 
+        $dirParent = $parent;
+        while($dirParent !== null){
+            foreach($dirParent->getApps() as $name => $childApp){
+                $tpl->addDirectives($childApp->getDirectives());
+            }
+            $dirParent = $dirParent->getParent();
+        }
+
         $filters = $this->getFilters();
         $tpl->setFilters($filters);
 

@@ -176,6 +176,12 @@ class ArrayList extends Service implements Iterator{
 //        return (new ArrayList($this->type))->set($objects);
     }
 
+    public function each(callable $callback){
+        foreach($this->items as $item){
+            call_user_func_array($callback, [$item]);
+        }
+    }
+
     /**
      * Gets the list as an array
      * @return array
