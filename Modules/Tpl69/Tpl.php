@@ -102,40 +102,62 @@ class Tpl{
                 }else{
                     $element = new Element($node);
                 }
-                if(isset($directive['controller']) && $directive['controller'] instanceof Closure){
-                    $scope = new Scope();
-                    $result = $this->parent->getCallbackArgs($directive['controller'], $scope);
-                    call_user_func_array($directive['controller'], $result);
-                }
-                if(isset($directive['link'])){
-                    $tplAttr->type       = 'E';
-                    $tplAttr->value      = $node->nodeValue;
-                    $tplAttr->attributes = $node->attributes;
-                    call_user_func_array($directive['link'], [$this->scope, $element, $tplAttr]);
-                }
-                if(isset($directive['templateUrl'])){
-                    $tpl = new Tpl($tplAttr->tpl->getParent());
-                    $tpl->setScope($scope);
-                    $tpl->setDirectives($this->directives);
-                    $tpl->setFilters($this->filters);
-                    $tpl->processNode($element->node);
-                    $newNode = $node->ownerDocument->importNode($element->node, true);
-                    $node->parentNode->replaceChild($newNode, $node);
-                }
+                $scope = $this->directiveController($directive);
+                $this->directiveLink($directive, $element, $node, 'E', $scope, $tplAttr);
+                $this->directiveTemplate($directive, $element, $node, $scope);
             }
             // Execute Attribute directives
             elseif(in_array('A', $restrictions) && $node instanceof DOMElement){
                 $attr = $node->getAttribute($name);
                 if($attr){
-                    $tplAttr->type       = 'A';
-                    $tplAttr->value      = $attr;
-                    $tplAttr->attributes = $node->attributes;
-                    $element = new Element($node);
-                    call_user_func_array($directive['link'], [$this->scope, $element, $tplAttr]);
+                    if(isset($directive['templateUrl'])){
+                        $element = $this->loadDirectiveTemplate($directive);
+                    }else{
+                        $element = new Element($node);
+                    }
+                    $scope = $this->directiveController($directive);
+                    $this->directiveLink($directive, $element, $node, 'A', $scope, $tplAttr, $attr);
+                    $this->directiveTemplate($directive, $element, $node, $scope);
+                    // $tplAttr->type       = 'A';
+                    // $tplAttr->value      = $attr;
+                    // $tplAttr->attributes = $node->attributes;
+                    // $element = new Element($node);
+                    // call_user_func_array($directive['link'], [$this->scope, $element, $tplAttr]);
                 }
             }else{
 
             }
+        }
+    }
+
+    protected function directiveController($directive){
+        if(isset($directive['controller']) && $directive['controller'] instanceof Closure){
+            $scope = new Scope();
+            $result = $this->parent->getCallbackArgs($directive['controller'], $scope);
+            call_user_func_array($directive['controller'], $result);
+            return $scope;
+        }
+        return $this->scope;
+    }
+
+    protected function directiveLink($directive, $element, $node, $type, $scope, $tplAttr, $attr = ''){
+        if(isset($directive['link'])){
+            $tplAttr->type       = $type;
+            $tplAttr->value      = $type == 'E' ? $node->nodeValue : $attr;
+            $tplAttr->attributes = $node->attributes;
+            call_user_func_array($directive['link'], [$scope, $element, $tplAttr]);
+        }
+    }
+
+    protected function directiveTemplate($directive, $element, $node, $scope){
+        if(isset($directive['templateUrl'])){
+            $tpl = new Tpl($this->parent);
+            $tpl->setScope($scope);
+            $tpl->setDirectives($this->directives);
+            $tpl->setFilters($this->filters);
+            $tpl->processNode($element->node);
+            $newNode = $node->ownerDocument->importNode($element->node, true);
+            $node->parentNode->replaceChild($newNode, $node);
         }
     }
 
