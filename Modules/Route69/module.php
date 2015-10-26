@@ -1,5 +1,6 @@
 <?php
 
+use Object69\Core\Controller;
 use Object69\Core\Event;
 use Object69\Core\Object69;
 use Object69\Modules\Route69\Route;
@@ -30,8 +31,18 @@ return call_user_func(function(){
     };
 
     $app->routeChange = function($value, $parent) use($route){
-        if(isset($route->getAlways()['displayAs'])){
-            $route->executeController($parent, $value[0]);
+        if(isset($route->getAlways()['displayAs']) || isset($value[0]['settings']['displayAs'])){
+            $controller = $value[0];
+            if(is_string($value[0]['settings']['controller'])){
+                $controllerName = $value[0]['settings']['controller'];
+                $method = $value[0]['settings']['method'];
+                $name = $controllerName . '.' . $method;
+                $controller = new Controller($name, $controllerName, $method);
+                $controller->setSettings($value[0]['settings']);
+            }
+            if($controller instanceof Controller){
+                $route->executeController($parent, $controller);
+            }
         }
     };
 

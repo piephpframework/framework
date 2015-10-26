@@ -104,6 +104,18 @@ class Model{
         return $this->db->rowCount();
     }
 
+    public function find($search){
+        $table       = $this->getTable();
+        $columns     = $this->getColumns();
+
+        $query = "select *,
+        (match ($columns) against (? in natural language mode with query expansion)) as score
+        from $table
+        where match ($columns) against (? in natural language mode with query expansion)
+        order by score desc";
+        return $this->db->getAll($query, [$search, $search]);
+    }
+
     /**
      * Edits items in the database
      */

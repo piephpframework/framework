@@ -76,6 +76,10 @@ class ResultSet implements Iterator{
         return $this;
     }
 
+    public function toArray(){
+        return $this->items;
+    }
+
     /**
      * Gets the current list item
      * @return mixed
