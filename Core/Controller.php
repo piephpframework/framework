@@ -27,7 +27,7 @@ class Controller{
             $call       = null,
             $settings   = [];
 
-    public function __construct($name, $callback, $method){
+    public function __construct($name, $callback = null, $method = null){
 
         $this->name = $name;
 
@@ -57,6 +57,14 @@ class Controller{
 
     public function setScope(Scope $scope){
         $this->scope = $scope;
+    }
+
+    public function setController($controller){
+        $this->controller = $controller;
+    }
+
+    public function setMethod($method){
+        $this->method = $method;
     }
 
     public function getScope(){

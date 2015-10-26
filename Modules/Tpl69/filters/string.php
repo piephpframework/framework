@@ -66,7 +66,7 @@ $app->filter('json', function(){
 /**
  * Uses a default value if one is not defined
  */
-$app->filter('def', function(){
+$app->filter('default', function(){
     return function ($value, $default = ''){
         return !empty($value) ? $value : $default;
     };
