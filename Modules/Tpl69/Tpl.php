@@ -77,10 +77,10 @@ class Tpl{
     public function processNode(DOMNode $element){
         if($element instanceof DOMElement){
             foreach($element->childNodes as $node){
+                $this->editNode($node);
                 if($node->hasChildNodes()){
                     $this->processNode($node);
                 }
-                $this->editNode($node);
             }
         }
     }
@@ -97,7 +97,7 @@ class Tpl{
             }
             // Execute Element directives
             if(in_array('E', $restrictions) && $node instanceof DOMElement && $name == $node->tagName){
-                $element = $this->getElement($directive);
+                $element = $this->getElement($directive, $node);
                 $scope = $this->directiveController($directive);
                 $this->directiveLink($directive, $element, $node, 'E', $scope, $tplAttr, $node->nodeValue);
                 $this->directiveTemplate($directive, $element, $node, $scope);
@@ -106,18 +106,16 @@ class Tpl{
             elseif(in_array('A', $restrictions) && $node instanceof DOMElement){
                 $attr = $node->getAttribute($name);
                 if($attr){
-                    $element = $this->getElement($directive);
+                    $element = $this->getElement($directive, $node);
                     $scope = $this->directiveController($directive);
-                    $this->directiveLink($directive, $element, $node, 'A', $scope, $tplAttr, $attr);
+                    $this->directiveLink($directive, $element, $node, 'A', $this->scope, $tplAttr, $attr);
                     $this->directiveTemplate($directive, $element, $node, $scope);
                 }
-            }else{
-
             }
         }
     }
 
-    protected function getElement($directive){
+    protected function getElement($directive, DOMElement $node){
         if(isset($directive['templateUrl'])){
             return $this->loadDirectiveTemplate($directive);
         }else{
@@ -128,6 +126,7 @@ class Tpl{
     protected function directiveController($directive){
         if(isset($directive['controller']) && $directive['controller'] instanceof Closure){
             $scope  = new Scope();
+            $scope->setParentScope($this->parent->getScope());
             $result = $this->parent->getCallbackArgs($directive['controller'], $scope);
             call_user_func_array($directive['controller'], $result);
             return $scope;
@@ -135,7 +134,7 @@ class Tpl{
         return $this->scope;
     }
 
-    protected function directiveLink($directive, $element, $node, $type, $scope, $tplAttr, $value){
+    protected function directiveLink($directive, Element $element, $node, $type, $scope, $tplAttr, $value){
         if(isset($directive['link'])){
             $tplAttr->type       = $type;
             $tplAttr->value      = $value;
@@ -144,7 +143,7 @@ class Tpl{
         }
     }
 
-    protected function directiveTemplate($directive, $element, $node, $scope){
+    protected function directiveTemplate($directive, Element $element, $node, $scope){
         if(isset($directive['templateUrl'])){
             $tpl = new Tpl($this->parent);
             $tpl->setScope($scope);

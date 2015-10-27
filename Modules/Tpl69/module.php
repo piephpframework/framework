@@ -106,7 +106,7 @@ return call_user_func(function(){
                             $item = [$item];
                         }
                         $doc = new DOMDocument();
-                        $doc->appendChild($doc->importNode($element, true));
+                        $doc->appendChild($doc->importNode($element->node, true));
                         $tpl = new Tpl($attr->tpl->getParent());
                         $tpl->setIndex($index);
                         $tpl->setRepeat($repeatInfo);
@@ -118,7 +118,7 @@ return call_user_func(function(){
                         $frag->appendChild($items->importNode($doc->documentElement, true));
                     }
                 }
-                $element->node->parentNode->replaceChild($element->node->ownerDocument->importNode($frag, true), $element);
+                $element->node->parentNode->replaceChild($element->node->ownerDocument->importNode($frag, true), $element->node);
             }
         ];
     });
@@ -194,7 +194,7 @@ return call_user_func(function(){
                     }else{
                         $textNode = $attr->doc->createTextNode($value);
                     }
-                    $element->node->parentNode->replaceChild($textNode, $element);
+                    $element->node->parentNode->replaceChild($textNode, $element->node);
                 }
             }
         ];
@@ -240,7 +240,7 @@ return call_user_func(function(){
                     eval('$result = (bool)(' . $find . ');');
                 }
                 if($result){
-                    $element->node->parentNode->removeChild($element);
+                    $element->node->parentNode->removeChild($element->node);
                 }else{
                     $element->node->removeAttribute('hide');
                 }
