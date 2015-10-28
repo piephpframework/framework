@@ -104,16 +104,28 @@ class Model{
         return $this->db->rowCount();
     }
 
-    public function find($search){
-        $table       = $this->getTable();
-        $columns     = $this->getColumns();
+    public function find($search, $settings = []){
+        $settings = array_merge_recursive($settings, ['where' => ['where' => false]]);
+        $values   = $this->getValues($settings);
+        $table    = $this->getTable();
+        $columns  = $this->getColumns(null, $settings);
+        $where    = $this->getWhere($settings);
+        $where    = !empty($where) ? $where . ' and ' : $where;
 
         $query = "select *,
         (match ($columns) against (? in natural language mode with query expansion)) as score
         from $table
-        where match ($columns) against (? in natural language mode with query expansion)
+        where $where match ($columns) against (? in natural language mode with query expansion)
         order by score desc";
-        return $this->db->getAll($query, [$search, $search]);
+
+        $p = [];
+        $p[] = $search;
+        foreach($values as $val){
+            $p[] = $val;
+        }
+        $p[] = $search;
+        
+        return $this->db->getAll($query, $p);
     }
 
     /**
@@ -151,15 +163,26 @@ class Model{
 //        return implode(",", array_pad([], count($vals), "?"));
     }
 
-    protected function getColumns($keys = null){
-        $keys = $keys === null ? array_keys($this->fields) : $keys;
-        return implode(",", $keys);
+    protected function getColumns($keys = null, $settings = []){
+        $keys  = $keys === null ? array_keys($this->fields) : $keys;
+        $fkeys = [];
+        foreach($keys as $key){
+            if(isset($settings['columns']['ignoredColumns']) && in_array($key, $settings['columns']['ignoredColumns'])){
+                continue;
+            }
+            $fkeys[] = $key;
+        }
+        return implode(",", $fkeys);
     }
 
-    protected function getValues(){
+    protected function getValues(array $settings = []){
         $vals = array_values($this->fields);
+        $keys = array_keys($this->fields);
         $arr  = [];
-        foreach($vals as $val){
+        foreach($vals as $index => $val){
+            if(isset($settings['where']['ignoredColumns']) && in_array($keys[$index], $settings['where']['ignoredColumns'])){
+                continue;
+            }
             if($val instanceof Sub){
                 $arr = array_merge($arr, $val->getProperties());
             }elseif(is_array($val)){
@@ -189,7 +212,9 @@ class Model{
             if($value instanceof Sub){
                 echo 'here';
             }
-
+            if(isset($settings['where']['ignoredColumns']) && in_array($value, $settings['where']['ignoredColumns'])){
+                continue;
+            }
             if($vals[$index][0] == '!'){
                 $items[] = "$value != ?";
             }elseif($vals[$index][0] == '>'){
@@ -198,6 +223,8 @@ class Model{
                 $items[] = "$value < ?";
             }elseif(is_array($vals[$index])){
                 $items[] = "$value in(" . implode(',', array_pad([], count($vals[$index]), '?')) . ")";
+            }elseif($vals[$index] === null){
+                $items[] = "$value is null";
             }else{
                 $items[] = "$value = ?";
             }
@@ -208,7 +235,11 @@ class Model{
                 }
             }
         }
-        $str = count($items) > 0 ? ' where ' : '';
+
+        $str = '';
+        if(!isset($settings['where']['where']) || $settings['where']['where'] === true){
+            $str = count($items) > 0 ? ' where ' : '';
+        }
         if(isset($settings['comp']) && count($settings['comp']) > 0){
             return $str . implode(' ', $items);
         }
