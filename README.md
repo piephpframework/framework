@@ -17,6 +17,8 @@ Once downloaded, create the file `index.php` inside the document root of your se
 ```php
 <?php
 
+use Object69\Core\Object69;
+
 require_once 'path/to/autoloader.php';
 
 $app = Object69::module('Welcome', []);

@@ -17,6 +17,9 @@ return call_user_func(function(){
 
     $app->method = strtolower(filter_input(INPUT_SERVER, 'REQUEST_METHOD'));
     $app->path   = $route->pathToArray(filter_input(INPUT_SERVER, 'REQUEST_URI'));
+    $app->query  = $route->queryString(filter_input(INPUT_SERVER, 'REQUEST_URI'));
+
+    parse_str($app->query, $_GET);
 
     $app->cleanup = function($parent) use($route){
         $controller = $route->findRoute($this);

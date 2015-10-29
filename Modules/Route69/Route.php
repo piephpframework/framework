@@ -218,7 +218,15 @@ class Route{
      * @return string
      */
     public function pathToArray($path){
-        return explode('/', ltrim($path, '/'));
+        $items = explode('/', ltrim($path, '/'));
+        return array_map(function($value){
+            return explode('?', $value, 2)[0];
+        }, $items);
+    }
+
+    public function queryString($path){
+        $pu = parse_url($path);
+        return isset($pu['query']) ? $pu['query'] : '';
     }
 
 }

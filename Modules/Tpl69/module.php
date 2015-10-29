@@ -150,7 +150,6 @@ return call_user_func(function(){
      */
     $app->directive('scope', function(){
         return [
-            'restrict' => 'AE',
             'link'     => function(Scope $scope, Element $element, TplAttr $attr){
                 $repeat  = $element->node->ownerDocument->documentElement->getAttribute('repeat');
                 $content = array_map('trim', explode('|', $attr->value));
