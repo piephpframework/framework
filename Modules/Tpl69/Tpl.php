@@ -115,7 +115,7 @@ class Tpl{
                     $attr    = $node->getAttribute($name);
                     $element = $this->getElement($directive, $node);
                     $scope   = $this->directiveController($directive);
-                    $this->directiveLink($directive, $element, $node, 'A', $this->scope, $tplAttr, $attr);
+                    $this->directiveLink($directive, $element, $node, 'A', $scope, $tplAttr, $attr);
                     $this->directiveTemplate($directive, $element, $node, $scope);
                     $processed++;
                 }
@@ -138,6 +138,8 @@ class Tpl{
             $result = $this->parent->getCallbackArgs($directive['controller'], $scope);
             call_user_func_array($directive['controller'], $result);
             return $scope;
+        }elseif(!isset($directive['controller'])){
+            return Object69::$rootScope;
         }
         return $this->scope;
     }
@@ -180,8 +182,11 @@ class Tpl{
 
     protected function braces(DOMElement $node, Scope $scope){
         $path   = $node->getNodePath();
-        $xpath  = new \DOMXPath($node->ownerDocument);
+        $xpath  = new DOMXPath($node->ownerDocument);
         $repeat = $node->ownerDocument->documentElement->getAttribute('repeat');
+        if($node->hasAttribute('repeat')){
+            $repeat = $node->getAttribute('repeat');
+        }
         /* @var $scopeNode DOMElement */
         foreach($xpath->query($path . '[*=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
             foreach($scopeNode->attributes as $attr){
@@ -195,10 +200,14 @@ class Tpl{
                             $repkeys = array_map('trim', explode('in', $repeat));
                             if(count(explode('.', $find)) == 1 && $repkeys[0] == explode('.', $find)[0]){
                                 $find = $repkeys[1] . '[' . $this->getIndex() . ']';
-                            }if($repkeys[0] == explode('.', $find)[0]){
+                            }
+                            if($repkeys[0] == explode('.', $find)[0]){
                                 $find = explode('.', $find);
                                 array_shift($find);
                                 $find = implode('.', $find);
+                            }
+                            if($repkeys[0] == trim($attrVal, '{}')){
+                                 $find = $repkeys[1] . '[' . $this->getIndex() . ']';
                             }
                         }
                         $val = Object69::find($find, $scope);
