@@ -2,6 +2,7 @@
 
 namespace Object69\Core;
 
+use Closure;
 use ReflectionFunction;
 use ReflectionMethod;
 
@@ -12,6 +13,7 @@ class App{
 
     protected
             $name        = '',
+            $config      = null,
             $apps        = [],
             $controllers = [],
             $directives  = [],
@@ -61,6 +63,13 @@ class App{
     }
 
     public function __destruct(){
+        // Run the config
+        if($this->config instanceof Closure){
+            $cbParams = $this->_getCbParams($this->config);
+            call_user_func_array($this->config, $cbParams);
+        }
+
+        // run additional events
         foreach($this->apps as $name => $dep){
             $result = $dep->cleanup($this);
             if($result instanceof Event){
@@ -112,8 +121,9 @@ class App{
      */
     public function config(callable $callback){
         $call     = $callback->bindTo($this, $this);
-        $cbParams = $this->_getCbParams($callback);
-        call_user_func_array($call, $cbParams);
+        $this->config = $call;
+        // $cbParams = $this->_getCbParams($callback);
+        // call_user_func_array($call, $cbParams);
         return $this;
     }
 
