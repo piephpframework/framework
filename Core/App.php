@@ -181,8 +181,8 @@ class App{
      */
     public function directive($name, $object){
         $call                    = $object->bindTo($this, $this);
-        $cbParams                = $this->_getCbParams($object);
-        $this->directives[$name] = call_user_func_array($call, $cbParams);
+        // $cbParams                = $this->_getCbParams($call);
+        $this->directives[$name] = $call;// call_user_func_array($call, $cbParams);
         return $this;
     }
 

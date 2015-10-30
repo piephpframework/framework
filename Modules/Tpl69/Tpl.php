@@ -90,6 +90,10 @@ class Tpl{
     public function editNode(DOMNode $node){
         $processed = 0;
         foreach($this->directives as $name => $directive){
+            if($directive instanceof Closure){
+                $cbParams  = $this->parent->getCallbackArgs($directive);
+                $directive = call_user_func_array($directive, $cbParams);
+            }
             $restrictions = isset($directive['restrict']) ? str_split($directive['restrict']) : ['A', 'E'];
             $tplAttr      = new TplAttr();
             $tplAttr->tpl = $this;
@@ -138,7 +142,7 @@ class Tpl{
             $result = $this->parent->getCallbackArgs($directive['controller'], $scope);
             call_user_func_array($directive['controller'], $result);
             return $scope;
-        }elseif(!isset($directive['controller'])){
+        }elseif(!isset($directive['controller']) && empty($this->scope)){
             return Object69::$rootScope;
         }
         return $this->scope;

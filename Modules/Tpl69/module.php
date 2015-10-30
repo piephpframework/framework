@@ -48,7 +48,8 @@ return call_user_func(function(){
             return;
         }
 
-        $directives = $this->getDirectives();
+
+        $directives = $parent->getDirectives();
         $tpl->setDirectives($directives);
 
         $dirParent = $parent;
