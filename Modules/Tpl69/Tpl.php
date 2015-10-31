@@ -91,6 +91,10 @@ class Tpl{
     public function editNode(DOMNode $node){
         $processed = 0;
         foreach($this->directives as $name => $directive){
+            if($directive instanceof Closure){
+                $cbParams  = $this->parent->getCallbackArgs($directive);
+                $directive = call_user_func_array($directive, $cbParams);
+            }
             $restrictions = isset($directive['restrict']) ? str_split($directive['restrict']) : ['A', 'E'];
             $tplAttr      = new TplAttr();
             $tplAttr->tpl = $this;
