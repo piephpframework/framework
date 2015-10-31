@@ -4,6 +4,7 @@ namespace Object69\Modules\Tpl69;
 
 use Closure;
 use DOMDocument;
+use DOMDocumentType;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
@@ -138,7 +139,7 @@ class Tpl{
             $result = $this->parent->getCallbackArgs($directive['controller'], $scope);
             call_user_func_array($directive['controller'], $result);
             return $scope;
-        }elseif(!isset($directive['controller'])){
+        }elseif(!isset($directive['controller']) && empty($this->scope)){
             return Object69::$rootScope;
         }
         return $this->scope;
