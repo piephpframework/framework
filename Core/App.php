@@ -93,6 +93,42 @@ class App{
         return $this->parent;
     }
 
+    public function controllerExists($controllerName, &$controller = null){
+        $curParent = $this;
+        while($curParent != null){
+            foreach($this->controllers as $name => $contrl){
+                if($name == $controllerName){
+                    $controller = $contrl;
+                    return true;
+                }
+            }
+            $curParent = $this->getParent();
+            if($curParent != null){
+                return $curParent->controllerExists($controllerName, $controller);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Evaluates Object69 expressions
+     * @param string $eval The string to be evaluated
+     */
+    public function evaluate($eval){
+        $toEval = preg_replace_callback("/(?<=').+?(?=')/s", function($matches){
+            $find  = Object69::find($matches[0]);
+            return !empty($find) ? $find : $matches[0];
+        }, $eval);
+
+        $isValid = false;
+        eval("\$isValid = ($toEval);");
+
+        if($isValid !== true && $isValid !== false){
+            return false;
+        }
+        return $isValid;
+    }
+
     /**
      * Fires off an event to listening dependencies
      * @param Event $event

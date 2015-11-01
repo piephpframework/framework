@@ -43,11 +43,11 @@ return call_user_func(function(){
             }
         }
 
+        // If no template is created don't process as a template
         if(!isset($newDoc)){
             echo '';
             return;
         }
-
 
         $directives = $parent->getDirectives();
         $tpl->setDirectives($directives);

@@ -109,7 +109,7 @@ class Tpl{
             if(in_array('E', $restrictions) && $node instanceof DOMElement && $name == $node->tagName){
                 $element = $this->getElement($directive, $node);
                 $scope   = $this->directiveController($directive);
-                $this->directiveLink($directive, $element, $node, 'E', $scope, $tplAttr, $node->nodeValue);
+                $this->directiveLink($name, $directive, $element, $node, 'E', $scope, $tplAttr, $node->nodeValue);
                 $this->directiveTemplate($directive, $element, $node, $scope);
                 $processed++;
             }
@@ -120,7 +120,7 @@ class Tpl{
                     $attr    = $node->getAttribute($name);
                     $element = $this->getElement($directive, $node);
                     $scope   = $this->directiveController($directive);
-                    $this->directiveLink($directive, $element, $node, 'A', $scope, $tplAttr, $attr);
+                    $this->directiveLink($name, $directive, $element, $node, 'A', $scope, $tplAttr, $attr);
                     $this->directiveTemplate($directive, $element, $node, $scope);
                     $processed++;
                 }
@@ -149,10 +149,11 @@ class Tpl{
         return $this->scope;
     }
 
-    protected function directiveLink($directive, Element $element, DOMNode $node, $type, Scope $scope, $tplAttr, $value){
+    protected function directiveLink($name, $directive, Element $element, DOMNode $node, $type, Scope $scope, $tplAttr, $value){
         if(isset($directive['link'])){
-            $tplAttr->type       = $type;
-            $tplAttr->value      = $value;
+            $tplAttr->type  = $type;
+            $tplAttr->value = $value;
+            $tplAttr->name  = $name;
             $tplAttr->attributes = $node->attributes;
             call_user_func_array($directive['link'], [$scope, $element, $tplAttr]);
         }

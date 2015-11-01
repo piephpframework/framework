@@ -36,14 +36,24 @@ return call_user_func(function(){
     $app->routeChange = function($value, $parent) use($route){
         if(isset($route->getAlways()['displayAs']) || isset($value[0]['settings']['displayAs'])){
             $controller = $value[0];
-            if(!($controller instanceof Controller) && is_string($value[0]['settings']['controller'])){
-                $controllerName = $value[0]['settings']['controller'];
-                $method = $value[0]['settings']['method'];
-                $name = $controllerName . '.' . $method;
+            if(
+                isset($controller['settings']['controller'])
+                && is_string($controller['settings']['controller'])
+                && $this->controllerExists($controller['settings']['controller'], $contrl)
+            ){
+                $name = $controller['settings']['controller'];
+                $route->executeController($parent, $contrl);
+            }elseif(
+                isset($controller['settings']['controller'])
+                && !($controller instanceof Controller)
+                && is_string($controller['settings']['controller'])
+            ){
+                $controllerName = $controller['settings']['controller'];
+                $method = isset($controller['settings']['method']) ? $controller['settings']['method'] : '';
+                $name = trim($controllerName . '.' . $method, '.');
                 $controller = new Controller($name, $controllerName, $method);
-                $controller->setSettings($value[0]['settings']);
-            }
-            if($controller instanceof Controller){
+                $controller->setSettings($controller['settings']);
+            }elseif($controller instanceof Controller){
                 $route->executeController($parent, $controller);
             }
         }

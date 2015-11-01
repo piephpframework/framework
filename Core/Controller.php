@@ -30,7 +30,7 @@ class Controller{
     public function __construct($name, $callback = null, $method = null){
 
         $this->name = $name;
-
+        
         if(is_callable($callback)){
             $this->controller = $callback;
         }elseif(is_string($callback)){
