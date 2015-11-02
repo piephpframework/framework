@@ -18,6 +18,7 @@ class Object69{
     }
 
     public static function find($path, $obj = null){
+        $previous = null;
         for($i = 0, $path = preg_split('/[\[\]\.]/', $path), $len = count($path); $i < $len; $i++){
             if($path[$i] == ''){
                 continue;
@@ -38,6 +39,8 @@ class Object69{
                 $obj = $_COOKIE;
             }elseif($path[$i] == '$root'){
                 $obj = Object69::$rootScope;
+            }elseif($path[$i] == '$length'){
+                return is_array($previous) ? count($previous) : 0;
             }else{
                 $item = ctype_digit($path[$i]) ? (int)$path[$i] : $path[$i];
                 if(is_object($obj)){
@@ -46,6 +49,7 @@ class Object69{
                     $obj = isset($obj[$item]) ? $obj[$item] : '';
                 }
             }
+            $previous = $obj;
         }
         return $obj;
     }

@@ -15,6 +15,7 @@ namespace Object69\Modules\Tpl69;
 class RepeatInfo{
 
     protected $length = 0;
+    protected $offset = 0;
 
     public function __construct($length){
         $this->length = $length;
@@ -22,6 +23,10 @@ class RepeatInfo{
 
     public function __get($name){
         return $this->$name;
+    }
+
+    public function incrementOffset($amount = 1){
+        $this->offset += $amount;
     }
 
 }

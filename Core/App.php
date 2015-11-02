@@ -111,22 +111,27 @@ class App{
     }
 
     /**
-     * Evaluates Object69 expressions
+     * Evaluates Object69 expressions<br>
+     * <b>Warning:<b> Do not Evaluate user input!
      * @param string $eval The string to be evaluated
+     * @param Scope $scope The scope to test evaluations
      */
-    public function evaluate($eval){
-        $toEval = preg_replace_callback("/(?<=').+?(?=')/s", function($matches){
-            $find  = Object69::find($matches[0]);
-            return !empty($find) ? $find : $matches[0];
+    public function evaluate($eval, Scope $scope = null){
+        $toEval = preg_replace_callback("/(?<=').+?(?=')/s", function($matches) use ($scope){
+            $find  = Object69::find($matches[0], $scope);
+            return $find !== '' ? $find : $matches[0];
         }, $eval);
 
-        $isValid = false;
-        eval("\$isValid = ($toEval);");
-
-        if($isValid !== true && $isValid !== false){
+        if(empty($toEval)){
             return false;
         }
-        return $isValid;
+        $isValid = false;
+        eval("\$isValid = ($toEval);");
+        
+        // if($isValid !== true && $isValid !== false){
+        //     return false;
+        // }
+        return (bool)$isValid;
     }
 
     /**

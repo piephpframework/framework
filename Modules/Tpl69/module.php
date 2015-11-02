@@ -95,7 +95,7 @@ return call_user_func(function(){
         return [
             'restrict' => 'A',
             'link'     => function(Scope $scope, Element $element, TplAttr $attr){
-                $repkeys = array_map('trim', explode('in', $attr->value));
+                $repkeys = array_map('trim', explode(' in ', $attr->value, 2));
                 $value   = Object69::find($repkeys[1], $scope);
                 $items   = new DOMDocument();
                 $frag    = $items->createDocumentFragment();
@@ -173,6 +173,11 @@ return call_user_func(function(){
                         $cscope = $cscope->getParentScope();
                     }while(true);
                 }
+                if($content[0] == '$value' && $value instanceof Scope){
+                    $value = $value->get(0);
+                }elseif($content[0] == '$index' && $value instanceof Scope){
+                    $value = $attr->tpl->getIndex();
+                }
                 $value = $attr->tpl->functions($value, $content, $scope);
                 if($attr->type == 'A'){
                     $element->node->nodeValue = '';
@@ -187,10 +192,19 @@ return call_user_func(function(){
                     }
                     $element->node->removeAttribute('scope');
                 }elseif($attr->type == 'E'){
-                    if(strlen(strip_tags($value)) != strlen($value)){
+                    if(is_string($value) && strlen(strip_tags($value)) != strlen($value)){
                         $htmldoc  = new DOMDocument();
                         $htmldoc->loadHTML($value, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
                         $textNode = $element->node->ownerDocument->importNode($htmldoc->documentElement, true);
+                    }elseif($value instanceof Scope){
+                        $index = $attr->tpl->getIndex();
+                        if($attr->value == '$index'){
+                            $textNode = $attr->doc->createTextNode($index);
+                        }elseif($value instanceof Scope){
+                            $textNode = $attr->doc->createTextNode($value->get(0));
+                        }else{
+                            $textNode = $attr->doc->createTextNode($value);
+                        }
                     }else{
                         $textNode = $attr->doc->createTextNode($value);
                     }
@@ -248,12 +262,26 @@ return call_user_func(function(){
         ];
     });
 
+    $app->directive('show', function(){
+        return [
+            'restrict' => 'A',
+            'link' => function(Scope $scope, Element $element, TplAttr $tplAttr){
+                $show = $this->evaluate($tplAttr->value, $scope);
+                if($show !== true){
+                    $element->node->parentNode->removeChild($element->node);
+                }else{
+                    $element->node->removeAttribute($tplAttr->name);
+                }
+            }
+        ];
+    });
+
     foreach(glob(__DIR__ . '/filters/*.php') as $file){
         require_once $file;
     }
 
-    function repeatFinder($repeat, $content){
-        $repkeys = array_map('trim', explode('in', $repeat));
+    function repeatFinder($repeat, $content, Tpl $tpl = null){
+        $repkeys = array_map('trim', explode(' in ', $repeat));
         $find = '';
         if($repkeys[0] == explode('.', $content[0])[0]){
             $find = explode('.', $content[0]);

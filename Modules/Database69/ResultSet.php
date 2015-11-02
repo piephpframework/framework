@@ -20,9 +20,11 @@ class ResultSet implements Iterator{
         $items  = [],
         $length = 0;
 
-    public function __construct(array $items = []){
-        $this->items  = $items;
-        $this->length = count($items);
+    public function __construct($items = []){
+        if(is_array($items)){
+            $this->items  = $items;
+            $this->length = count($items);
+        }
     }
 
     public function __get($name){

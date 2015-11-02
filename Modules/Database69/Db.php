@@ -135,6 +135,14 @@ class Db{
     }
 
     /**
+     * Returns the insert id of the last inserted row
+     * @return int
+     */
+    public function lastInsertId(){
+        return $this->db->lastInsertId();
+    }
+
+    /**
      * Binds items to their placeholder
      * @param string $query
      * @param array $params

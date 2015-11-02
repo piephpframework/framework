@@ -87,7 +87,7 @@ class Model{
      * Inserts items into the database
      * @return int
      */
-    public function save(array $settings = null){
+    public function save(array $settings = []){
         if(empty($this->fields)){
             return false;
         }
@@ -101,7 +101,7 @@ class Model{
 
         $this->db->query($query, $values);
         $this->reset();
-        return $this->db->rowCount();
+        return $this->db->lastInsertId();
     }
 
     public function find($search, $settings = []){
@@ -124,7 +124,7 @@ class Model{
             $p[] = $val;
         }
         $p[] = $search;
-        
+
         return $this->db->getAll($query, $p);
     }
 
@@ -267,7 +267,7 @@ class Model{
     }
 
     protected function duplicateKey(array $settings){
-        if($settings === null || !isset($settings['onDuplicate']) || empty($settings['onDuplicate'])){
+        if(!isset($settings['onDuplicate']) || empty($settings['onDuplicate'])){
             return '';
         }
 
