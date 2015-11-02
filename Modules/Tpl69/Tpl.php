@@ -100,6 +100,11 @@ class Tpl{
             $tplAttr->tpl = $this;
             $tplAttr->doc = $node->ownerDocument;
 
+            // Replace the braces within attributes
+            if($node instanceof DOMElement){
+                $this->braces($node, $this->scope);
+            }
+            
             // Execute the Element directives
             if(in_array('E', $restrictions) && $node instanceof DOMElement && $name == $node->tagName){
                 $element = $this->getElement($directive, $node);
@@ -119,11 +124,6 @@ class Tpl{
                     $this->directiveTemplate($directive, $element, $node, $scope);
                     $processed++;
                 }
-            }
-
-            // Replace the braces within attributes
-            if($node instanceof DOMElement){
-                $this->braces($node, $this->scope);
             }
         }
         return $processed;
@@ -194,7 +194,8 @@ class Tpl{
             $repeat = $node->getAttribute('repeat');
         }
         /* @var $scopeNode DOMElement */
-        foreach($xpath->query($path . '[*=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
+        // foreach($xpath->query($path . '[*=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
+        foreach($xpath->query($path . '[@.=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
             foreach($scopeNode->attributes as $attr){
                 $matches = [];
                 // var_dump($attr->value);

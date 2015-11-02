@@ -31,7 +31,7 @@ class Session extends Service{
     }
 
     public function find($path){
-        return parent::find($path, $_SESSION);
+        return parent::_find($path, $_SESSION);
     }
 
 }

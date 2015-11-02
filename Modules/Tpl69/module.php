@@ -23,7 +23,11 @@ return call_user_func(function(){
                 $basefile = $tpl->getBase() . $value[0]['globalSettings']['baseTemplateUrl'];
             }
             if(isset($value[0]['settings']['baseTemplateUrl'])){
-                $basefile = $tpl->getBase() . $value[0]['settings']['baseTemplateUrl'];
+                if(!empty($value[0]['settings']['baseTemplateUrl'])){
+                    $basefile = $tpl->getBase() . $value[0]['settings']['baseTemplateUrl'];
+                }else{
+                    $basefile = null;
+                }
             }
 
             if(!empty($basefile)){
@@ -68,7 +72,13 @@ return call_user_func(function(){
             $tpl->processNode($child);
         }
 
-        $doctype = isset($_ENV['tpl']['doctype']) ? $_ENV['tpl']['doctype'] : "<!doctype html>";
+        $doctype = '';
+        if(isset($value[0]['settings']['doctype'])){
+            $doctype = $value[0]['settings']['doctype'];
+            $doctype = $doctype === null ? '' : $doctype;
+        }else{
+            $doctype = isset($_ENV['tpl']['doctype']) ? $_ENV['tpl']['doctype'] : '<!doctype html>';
+        }
         echo "$doctype\n" . $newDoc->saveHTML();
     };
 

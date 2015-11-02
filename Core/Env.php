@@ -21,6 +21,10 @@ class Env extends Service{
         }
     }
 
+    public function find($string){
+        return parent::_find($string, $_ENV);
+    }
+
     public static function loadFromFile($filename){
         $_ENV = parse_ini_file($filename, true);
     }
