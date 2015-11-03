@@ -13,7 +13,7 @@ $_ENV = [
 ];
 
 spl_autoload_register(function($class){
-    $class      = preg_replace('/^Object69\\\/', '', $class);
+    $class      = preg_replace('/^Pie\\\/', '', $class);
     $base       = isset($_ENV['root']['source']) ? $_ENV['root']['source'] : '.';
     $sourceRoot = strpos($base, '/') === 0 ? $base : $_SERVER['DOCUMENT_ROOT'] . '/' . $base;
     // Attpempt to load from the source root

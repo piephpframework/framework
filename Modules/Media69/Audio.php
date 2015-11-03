@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69\Modules\Media69;
+namespace Pie\Modules\Media69;
 
 class Audio extends Media{
 

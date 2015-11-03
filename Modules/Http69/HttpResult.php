@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69\Modules\Http69;
+namespace Pie\Modules\Http69;
 
 class HttpResult{
 

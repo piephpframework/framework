@@ -1,13 +1,13 @@
 <?php
 
-use Object69\Core\Controller;
-use Object69\Core\Event;
-use Object69\Core\Object69;
-use Object69\Modules\Route69\Route;
-use Object69\Modules\Route69\RouteParams;
+use Pie\Crust\Controller;
+use Pie\Crust\Event;
+use Pie\Crust\Pie;
+use Pie\Modules\Route69\Route;
+use Pie\Modules\Route69\RouteParams;
 
 return call_user_func(function(){
-    $app = Object69::module('Route69', []);
+    $app = Pie::module('Route69', []);
 
     $route       = new Route();
     $routeParams = new RouteParams();

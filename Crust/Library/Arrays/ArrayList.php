@@ -1,10 +1,10 @@
 <?php
 
-namespace Object69\Core\Library\Arrays;
+namespace Pie\Crust\Library\Arrays;
 
 use Exception;
 use Iterator;
-use Object69\Core\Service;
+use Pie\Crust\Service;
 
 /**
  * @property int $count Count of items in list

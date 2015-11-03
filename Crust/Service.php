@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69\Core;
+namespace Pie\Crust;
 
 abstract class Service{
 
@@ -8,7 +8,7 @@ abstract class Service{
 
     protected function _find($path, $object = null){
         $obj = $object === null ? $this->values : $object;
-        return Object69::find($path, $obj);
+        return Pie::find($path, $obj);
     }
 
 }

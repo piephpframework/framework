@@ -1,8 +1,8 @@
 <?php
 
-namespace Object69\Core;
+namespace Pie\Crust;
 
-class Object69{
+class Pie{
 
     public static $root      = null;
     public static $rootScope = null;
@@ -38,7 +38,7 @@ class Object69{
             }elseif($path[$i] == '$cookie'){
                 $obj = $_COOKIE;
             }elseif($path[$i] == '$root'){
-                $obj = Object69::$rootScope;
+                $obj = Pie::$rootScope;
             }elseif($path[$i] == '$length'){
                 return is_array($previous) ? count($previous) : 0;
             }else{
@@ -56,4 +56,4 @@ class Object69{
 
 }
 
-Object69::$rootScope = new RootScope();
+Pie::$rootScope = new RootScope();

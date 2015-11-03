@@ -1,8 +1,8 @@
 <?php
 
-namespace Object69\Modules\Session69;
+namespace Pie\Modules\Session69;
 
-use Object69\Core\Service;
+use Pie\Crust\Service;
 
 class Session extends Service{
 

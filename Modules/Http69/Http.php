@@ -1,10 +1,10 @@
 <?php
 
-namespace Object69\Modules\Http69;
+namespace Pie\Modules\Http69;
 
 use Exception;
-use Object69\Core\Library\Arrays\ArrayList;
-use Object69\Modules\Http69\HttpResult;
+use Pie\Crust\Library\Arrays\ArrayList;
+use Pie\Modules\Http69\HttpResult;
 
 class Http{
 

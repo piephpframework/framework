@@ -1,10 +1,10 @@
 <?php
 
-use Object69\Modules\Session69\Session;
-use Object69\Core\Object69;
+use Pie\Modules\Session69\Session;
+use Pie\Crust\Pie;
 
 return call_user_func(function(){
-    $app = Object69::module('Session69', []);
+    $app = Pie::module('Session69', []);
 
     $app->service('session', new Session());
 

@@ -7,7 +7,7 @@
  * @version 1.0.0 Sep 28, 2015
  */
 
-namespace Object69\Core;
+namespace Pie\Crust;
 
 /**
  * @property callable $controller A controller class name or calable

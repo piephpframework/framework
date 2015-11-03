@@ -1,8 +1,8 @@
 <?php
 
-namespace Object69\Core\Library\Net;
+namespace Pie\Crust\Library\Net;
 
-use Object69\Core\Service;
+use Pie\Crust\Service;
 
 class Request extends Service{
 

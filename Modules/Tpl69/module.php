@@ -1,14 +1,14 @@
 <?php
 
-use Object69\Core\Object69;
-use Object69\Core\Scope;
-use Object69\Modules\Tpl69\RepeatInfo;
-use Object69\Modules\Tpl69\Tpl;
-use Object69\Modules\Tpl69\Element;
-use Object69\Modules\Tpl69\TplAttr;
+use Pie\Crust\Pie;
+use Pie\Crust\Scope;
+use Pie\Modules\Tpl69\RepeatInfo;
+use Pie\Modules\Tpl69\Tpl;
+use Pie\Modules\Tpl69\Element;
+use Pie\Modules\Tpl69\TplAttr;
 
 return call_user_func(function(){
-    $app = Object69::module('Tpl69', []);
+    $app = Pie::module('Tpl69', []);
 
     $tpl = new Tpl();
 
@@ -83,7 +83,7 @@ return call_user_func(function(){
     };
 
     /**
-     * Tells Object69 the name of the controller to use for this template.
+     * Tells Pie the name of the controller to use for this template.
      */
     $app->directive('controller', function(){
         return [
@@ -106,7 +106,7 @@ return call_user_func(function(){
             'restrict' => 'A',
             'link'     => function(Scope $scope, Element $element, TplAttr $attr){
                 $repkeys = array_map('trim', explode(' in ', $attr->value, 2));
-                $value   = Object69::find($repkeys[1], $scope);
+                $value   = Pie::find($repkeys[1], $scope);
                 $items   = new DOMDocument();
                 $frag    = $items->createDocumentFragment();
                 if(is_array($value) || $value instanceof Iterator){
@@ -169,14 +169,14 @@ return call_user_func(function(){
                 }else{
                     $find = $content[0];
                 }
-                $value = Object69::find($find, $scope);
+                $value = Pie::find($find, $scope);
                 if($value === null){
                     $cscope = $scope->getParentScope();
                     do{
                         if($cscope === null){
                             break;
                         }
-                        $value = Object69::find($find, $cscope);
+                        $value = Pie::find($find, $cscope);
                         if($value !== null){
                             break;
                         }
@@ -258,7 +258,7 @@ return call_user_func(function(){
                 }else{
                     $find = $content[0];
                 }
-                $find = Object69::find($find, $scope);
+                $find = Pie::find($find, $scope);
                 $result = false;
                 if(!empty($find)){
                     eval('$result = (bool)(' . $find . ');');

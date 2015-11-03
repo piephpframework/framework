@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69\Modules\Route69;
+namespace Pie\Modules\Route69;
 
 /**
  *

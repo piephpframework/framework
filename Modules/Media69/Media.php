@@ -1,10 +1,10 @@
 <?php
 
-namespace Object69\Modules\Media69;
+namespace Pie\Modules\Media69;
 
-use Object69\Modules\Media69\Image;
-use Object69\Modules\Media69\Audio;
-use Object69\Modules\Media69\Video;
+use Pie\Modules\Media69\Image;
+use Pie\Modules\Media69\Audio;
+use Pie\Modules\Media69\Video;
 
 class Media{
 

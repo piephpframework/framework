@@ -1,11 +1,11 @@
 <?php
 
-namespace Object69\Modules\Tpl69;
+namespace Pie\Modules\Tpl69;
 
 use DOMElement;
 use DOMXPath;
 use DOMNode;
-use Object69\Core\Library\Arrays\ArrayList;
+use Pie\Crust\Library\Arrays\ArrayList;
 
 class Element{
 

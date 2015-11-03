@@ -1,12 +1,12 @@
 <?php
 
-namespace Object69\Modules\Tpl69;
+namespace Pie\Modules\Tpl69;
 
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
-use Object69\Core\Object69;
-use Object69\Modules\Module;
+use Pie\Crust\Pie;
+use Pie\Modules\Module;
 
 /**
  * @property DOMDocument $doc DOM Document
@@ -48,7 +48,7 @@ class Tpl69 extends Module{
         foreach($includes as $node){
 //        for($i = 0; $i < $includes->length;){
 //            $node    = $includes->item($i);
-            $newnode = $this->braces($node, Object69::$rootScope);
+            $newnode = $this->braces($node, Pie::$rootScope);
             $file    = $node->getAttribute('file');
             $is_attr = false;
             if(empty($file)){
@@ -79,7 +79,7 @@ class Tpl69 extends Module{
         /* @var $node DOMElement */
         foreach($xpath->query('//input[@bind]') as $node){
             $name  = $node->getAttribute('bind');
-            $value = Object69::find($name, $scope);
+            $value = Pie::find($name, $scope);
             if($value){
                 $node->setAttribute('value', $value);
             }
@@ -96,7 +96,7 @@ class Tpl69 extends Module{
         /* @var $node DOMElement */
         foreach($xpath->query('//*[@show]') as $node){
             $show  = $node->getAttribute('show');
-            $found = Object69::find($show, $scope);
+            $found = Pie::find($show, $scope);
             if($found === null){
                 $node->parentNode->removeChild($node);
             }
@@ -115,7 +115,7 @@ class Tpl69 extends Module{
             $repeat = $node->getAttribute('repeat');
             $node->removeAttribute('repeat');
             $vals   = array_map('trim', explode('in', $repeat));
-            $items  = Object69::find($vals[1], $scope);
+            $items  = Pie::find($vals[1], $scope);
 
             $doc = new DOMDocument();
             foreach($items as $item){
@@ -152,7 +152,7 @@ class Tpl69 extends Module{
                     if($find == $repeatVal){
                         $val = $scope;
                     }else{
-                        $val = Object69::find($find, $scope);
+                        $val = Pie::find($find, $scope);
                     }
                     $val  = $this->functions($val, $content);
                     $repl = preg_replace('/\{\{(.+?)\}\}/', $val, $attr->value);
@@ -183,7 +183,7 @@ class Tpl69 extends Module{
             if($content[0] == $repeatVal){
                 $val = $scope;
             }else{
-                $val = Object69::find(trim($content[0]), $scope);
+                $val = Pie::find(trim($content[0]), $scope);
             }
             if(is_array($val)){
                 $val = json_encode($val);
@@ -220,9 +220,9 @@ class Tpl69 extends Module{
             $func  = array_shift($items);
             array_unshift($items, $value);
             if(!is_callable($func)){
-                $call = Object69::find($func, $this->currentScope);
+                $call = Pie::find($func, $this->currentScope);
                 if(!$call){
-                    $func = Object69::find($func, Object69::$rootScope);
+                    $func = Pie::find($func, Pie::$rootScope);
                 }else{
                     $func = $call;
                 }

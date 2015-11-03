@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69\Modules\Tpl69;
+namespace Pie\Modules\Tpl69;
 
 use DOMDocument;
 

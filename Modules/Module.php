@@ -1,8 +1,8 @@
 <?php
 
-namespace Object69\Modules;
+namespace Pie\Modules;
 
-use Object69\App;
+use Pie\App;
 
 /**
  * @property App $app An application instance

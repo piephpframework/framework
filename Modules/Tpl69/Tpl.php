@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69\Modules\Tpl69;
+namespace Pie\Modules\Tpl69;
 
 use Closure;
 use DOMDocument;
@@ -8,9 +8,9 @@ use DOMDocumentType;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
-use Object69\Core\Object69;
-use Object69\Core\Scope;
-use Object69\Modules\Tpl69\Element;
+use Pie\Crust\Pie;
+use Pie\Crust\Scope;
+use Pie\Modules\Tpl69\Element;
 
 class Tpl{
 
@@ -144,7 +144,7 @@ class Tpl{
             call_user_func_array($directive['controller'], $result);
             return $scope;
         }elseif(!isset($directive['controller']) && empty($this->scope)){
-            return Object69::$rootScope;
+            return Pie::$rootScope;
         }
         return $this->scope;
     }
@@ -218,9 +218,9 @@ class Tpl{
                                  $find = $repkeys[1] . '[' . $this->getIndex() . ']';
                             }
                         }
-                        $val = Object69::find($find, $scope);
+                        $val = Pie::find($find, $scope);
                         if(!$val){
-                            $val = Object69::find($find, $scope->getParentScope());
+                            $val = Pie::find($find, $scope->getParentScope());
                         }
                         $val = $this->functions($val, $content, $scope);
                         if(is_string($val)){
@@ -244,14 +244,14 @@ class Tpl{
                 $func = $filter;
             }else{
                 if(!is_callable($func)){
-                    $call = Object69::find($func, $scope);
+                    $call = Pie::find($func, $scope);
                     if(!$call){
                         $cscope = $scope->getParentScope();
                         do{
                             if($cscope === null){
                                 break;
                             }
-                            $func = Object69::find($op, $cscope);
+                            $func = Pie::find($op, $cscope);
                             if($func !== null){
                                 break;
                             }
@@ -262,7 +262,7 @@ class Tpl{
                     }
                 }
                 if(!$call){
-                    $func = Object69::find($func, Object69::$rootScope);
+                    $func = Pie::find($func, Pie::$rootScope);
                 }
             }
             if($func instanceof Closure){
@@ -335,7 +335,7 @@ class Tpl{
         if(is_file($filename)){
             return $filename;
         }
-//        $filename = \Object69::$root . '/../' . $value[0]['settings']['templateUrl'];
+//        $filename = \Pie::$root . '/../' . $value[0]['settings']['templateUrl'];
 //        if(is_file($filename)){
 //            return $filename;
 //        }

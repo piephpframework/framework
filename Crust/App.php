@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69\Core;
+namespace Pie\Crust;
 
 use Closure;
 use ReflectionFunction;
@@ -53,7 +53,7 @@ class App{
             /* @var $app App */
             $app = require_once $module . '/module.php';
 
-            $app->service('rootScope', Object69::$rootScope);
+            $app->service('rootScope', Pie::$rootScope);
             $app->service('env', new Env());
             $app->setParent($this);
 
@@ -111,14 +111,14 @@ class App{
     }
 
     /**
-     * Evaluates Object69 expressions<br>
+     * Evaluates Pie expressions<br>
      * <b>Warning:<b> Do not Evaluate user input!
      * @param string $eval The string to be evaluated
      * @param Scope $scope The scope to test evaluations
      */
     public function evaluate($eval, Scope $scope = null){
         $toEval = preg_replace_callback("/(?<=').+?(?=')/s", function($matches) use ($scope){
-            $find  = Object69::find($matches[0], $scope);
+            $find  = Pie::find($matches[0], $scope);
             return $find !== '' ? $find : $matches[0];
         }, $eval);
 
@@ -400,7 +400,7 @@ class App{
             if($param->name == 'scope'){
                 $cbParams[] = $scope;
             }elseif($param->name == 'rootScope'){
-                $cbParams[] = Object69::$rootScope;
+                $cbParams[] = Pie::$rootScope;
             }else{
                 $cbParams[] = $this->paramLookup($param->name);
             }

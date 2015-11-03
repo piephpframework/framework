@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69\Core;
+namespace Pie\Crust;
 
 /**
  * @property Scope $parentScope The parent scope

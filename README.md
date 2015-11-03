@@ -1,30 +1,30 @@
 ## Setup
 
-Setup is really easy for the **Object69** Framework, just follow the required steps below.
+Setup is really easy for the **Pie** Framework, just follow the required steps below.
 
 ### Installation
 
-To install Object69 download the files to your server, it is recommended that the files are somewhere outside of the document root. If you cannot place them outside of the document root place them in a directory within the document root. No framework files should be in the root directory of the document root though.
+To install Pie download the files to your server, it is recommended that the files are somewhere outside of the document root. If you cannot place them outside of the document root place them in a directory within the document root. No framework files should be in the root directory of the document root though.
 
 Example locations:
 
-* `/usr/share/php/Object69/autoloader.php`
-* `/home/$USER/Object69/autoloader.php`
-* `$DOCUMENT_ROOT/Object69/autoloader.php`
+* `/usr/share/php/Pie/autoloader.php`
+* `/home/$USER/Pie/autoloader.php`
+* `$DOCUMENT_ROOT/Pie/autoloader.php`
 
-Once downloaded, create the file `index.php` inside the document root of your server. Replace `path/to/autoloader.php` with the actual path of the autoloader found in the root of the `Object69` framework.
+Once downloaded, create the file `index.php` inside the document root of your server. Replace `path/to/autoloader.php` with the actual path of the autoloader found in the root of the `Pie` framework.
 
 ```php
 <?php
 
-use Object69\Core\Object69;
+use Pie\Crust\Pie;
 
 require_once 'path/to/autoloader.php';
 
-$app = Object69::module('Welcome', []);
+$app = Pie::module('Welcome', []);
 
 $app->controller('Welcome', function(){
-    echo '<h1>Welcome to Object69!</h1>';
+    echo '<h1>Welcome to Pie!</h1>';
 });
 
 $app->call('Welcome');
@@ -32,12 +32,12 @@ $app->call('Welcome');
 
 ### Change PHP Include Path (Optional)
 
-In the `php.ini` file that is loaded for your php, find the line `include_path` and append the path to the `Object69` framework. Lets assume that you put the framework here `/usr/share/php/Object69` we then just append that to the `include_path` prefixed with a `:`
+In the `php.ini` file that is loaded for your php, find the line `include_path` and append the path to the `Pie` framework. Lets assume that you put the framework here `/usr/share/php/Pie` we then just append that to the `include_path` prefixed with a `:`
 
 Your include path might look something like this now:
 
 ```
-include_path = ".:/usr/share/php/Object69"
+include_path = ".:/usr/share/php/Pie"
 ```
 
 ### Routing

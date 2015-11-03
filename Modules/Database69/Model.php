@@ -1,10 +1,10 @@
 <?php
 
-namespace Object69\Modules\Database69;
+namespace Pie\Modules\Database69;
 
 use Exception;
-use Object69\Modules\Database69\Db;
-use Object69\Modules\Database69\ResultSet;
+use Pie\Modules\Database69\Db;
+use Pie\Modules\Database69\ResultSet;
 
 /**
  * @property Db $db Database Connection
@@ -53,7 +53,7 @@ class Model{
      *
      * @param string $string
      * @param array $properties
-     * @return \Object69\Modules\Database69\Raw
+     * @return \Pie\Modules\Database69\Raw
      */
     public function sub($string, array $properties = []){
         return new Sub($string, $properties);

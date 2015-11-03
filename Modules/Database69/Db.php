@@ -1,6 +1,6 @@
 <?php
 
-namespace Object69\Modules\Database69;
+namespace Pie\Modules\Database69;
 
 use Exception;
 use PDO;
