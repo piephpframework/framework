@@ -158,22 +158,6 @@ class ArrayList extends Service implements Iterator{
             }
         }
         return (new ArrayList($this->type))->set($objects);
-
-
-//        $objects = $this->items;
-//        foreach($this->items as $index => $item){
-//            $remove = false;
-//            foreach($paths as $path => $value){
-//                if($value != parent::find($item, $path)){
-//                    $remove = true;
-//                    break;
-//                }
-//            }
-//            if($remove){
-//                unset($objects[$index]);
-//            }
-//        }
-//        return (new ArrayList($this->type))->set($objects);
     }
 
     public function each(callable $callback){
