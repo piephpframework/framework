@@ -1,6 +1,6 @@
 <?php
 
-namespace Pie\Modules\Route69;
+namespace Pie\Modules\Route;
 
 use Exception;
 use Pie\Crust\App;

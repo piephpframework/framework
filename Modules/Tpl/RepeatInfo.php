@@ -7,7 +7,7 @@
  * @version 1.0.0 Oct 1, 2015
  */
 
-namespace Pie\Modules\Tpl69;
+namespace Pie\Modules\Tpl;
 
 /**
  * @property int $length Length of the repeating item

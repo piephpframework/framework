@@ -1,6 +1,6 @@
 <?php
 
-namespace Pie\Modules\Tpl69;
+namespace Pie\Modules\Tpl;
 
 use DOMDocument;
 use DOMElement;
@@ -11,7 +11,7 @@ use Pie\Modules\Module;
 /**
  * @property DOMDocument $doc DOM Document
  */
-class Tpl69 extends Module{
+class Tpl extends Module{
 
     protected $currentScope = null;
 

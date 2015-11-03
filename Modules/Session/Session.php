@@ -1,6 +1,6 @@
 <?php
 
-namespace Pie\Modules\Session69;
+namespace Pie\Modules\Session;
 
 use Pie\Crust\Service;
 

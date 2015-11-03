@@ -3,11 +3,11 @@
 use Pie\Crust\Controller;
 use Pie\Crust\Event;
 use Pie\Crust\Pie;
-use Pie\Modules\Route69\Route;
-use Pie\Modules\Route69\RouteParams;
+use Pie\Modules\Route\Route;
+use Pie\Modules\Route\RouteParams;
 
 return call_user_func(function(){
-    $app = Pie::module('Route69', []);
+    $app = Pie::module('Route', []);
 
     $route       = new Route();
     $routeParams = new RouteParams();

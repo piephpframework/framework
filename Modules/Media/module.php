@@ -1,11 +1,11 @@
 <?php
 
 use Pie\Crust\Pie;
-use Pie\Modules\Media69\Media;
+use Pie\Modules\Media\Media;
 
 return call_user_func(function(){
 
-    $app = Pie::module('Media69', []);
+    $app = Pie::module('Media', []);
 
     $app->service('media', new Media());
 

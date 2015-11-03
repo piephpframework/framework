@@ -1,6 +1,6 @@
 <?php
 
-namespace Pie\Modules\Tpl69;
+namespace Pie\Modules\Tpl;
 
 use DOMElement;
 use DOMXPath;

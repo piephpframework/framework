@@ -7,7 +7,7 @@
  * @version 1.0.0 Sep 30, 2015
  */
 
-namespace Pie\Modules\Database69;
+namespace Pie\Modules\Database;
 
 use Iterator;
 
@@ -52,7 +52,7 @@ class ResultSet implements Iterator{
      *
      * @param type $value1
      * @param type $value2
-     * @return \Pie\Modules\Database69\ResultSet
+     * @return \Pie\Modules\Database\ResultSet
      */
     public function add($value1, $value2 = null){
         return $this;

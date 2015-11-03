@@ -1,6 +1,6 @@
 <?php
 
-namespace Pie\Modules\Tpl69;
+namespace Pie\Modules\Tpl;
 
 use Closure;
 use DOMDocument;
@@ -10,7 +10,7 @@ use DOMNode;
 use DOMXPath;
 use Pie\Crust\Pie;
 use Pie\Crust\Scope;
-use Pie\Modules\Tpl69\Element;
+use Pie\Modules\Tpl\Element;
 
 class Tpl{
 

@@ -7,7 +7,7 @@
  * @version 1.0.0 Sep 29, 2015
  */
 
-namespace Pie\Modules\Database69;
+namespace Pie\Modules\Database;
 
 class Sub{
 

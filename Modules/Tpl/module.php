@@ -2,13 +2,13 @@
 
 use Pie\Crust\Pie;
 use Pie\Crust\Scope;
-use Pie\Modules\Tpl69\RepeatInfo;
-use Pie\Modules\Tpl69\Tpl;
-use Pie\Modules\Tpl69\Element;
-use Pie\Modules\Tpl69\TplAttr;
+use Pie\Modules\Tpl\RepeatInfo;
+use Pie\Modules\Tpl\Tpl;
+use Pie\Modules\Tpl\Element;
+use Pie\Modules\Tpl\TplAttr;
 
 return call_user_func(function(){
-    $app = Pie::module('Tpl69', []);
+    $app = Pie::module('Tpl', []);
 
     $tpl = new Tpl();
 

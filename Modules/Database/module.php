@@ -1,10 +1,10 @@
 <?php
 
 use Pie\Crust\Pie;
-use Pie\Modules\Database69\Db;
+use Pie\Modules\Database\Db;
 
 return call_user_func(function(){
-    $app = Pie::module('Database69', []);
+    $app = Pie::module('Database', []);
 
     $app->service('db', new Db());
 

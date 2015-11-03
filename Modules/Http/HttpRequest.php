@@ -1,6 +1,6 @@
 <?php
 
-namespace Pie\Modules\Http69;
+namespace Pie\Modules\Http;
 
 class HttpRequest{
 

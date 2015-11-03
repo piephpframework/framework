@@ -1,6 +1,6 @@
 <?php
 
-namespace Pie\Modules\Media69;
+namespace Pie\Modules\Media;
 
 class Video extends Media{
 
