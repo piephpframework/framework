@@ -5,6 +5,7 @@ namespace Object69\Modules\Database69;
 use Exception;
 use PDO;
 use PDOStatement;
+use ArrayObject;
 
 /**
  * @property PDOStatement $stmt PDO Database Statement

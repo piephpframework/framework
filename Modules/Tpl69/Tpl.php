@@ -104,7 +104,7 @@ class Tpl{
             if($node instanceof DOMElement){
                 $this->braces($node, $this->scope);
             }
-            
+
             // Execute the Element directives
             if(in_array('E', $restrictions) && $node instanceof DOMElement && $name == $node->tagName){
                 $element = $this->getElement($directive, $node);
@@ -194,7 +194,6 @@ class Tpl{
             $repeat = $node->getAttribute('repeat');
         }
         /* @var $scopeNode DOMElement */
-        // foreach($xpath->query($path . '[*=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
         foreach($xpath->query($path . '[@.=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
             foreach($scopeNode->attributes as $attr){
                 $matches = [];

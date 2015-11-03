@@ -42,7 +42,7 @@ class Model{
 
         $query = "select * from $table $where $order $limit";
 
-        $this->reset();
+        $this->reset($settings);
         if(isset($settings['limit']) && $settings['limit'] == 1){
             return $this->db->getRow($query, $values);
         }
@@ -100,7 +100,7 @@ class Model{
         $query = "insert into $table ($columns) values ($placeholers) $duplicate";
 
         $this->db->query($query, $values);
-        $this->reset();
+        $this->reset($settings);
         return $this->db->lastInsertId();
     }
 
@@ -138,11 +138,22 @@ class Model{
     /**
      * Removes items from the database
      */
-    public function remove(){
+    public function remove(array $settings = []){
+        $values = $this->getValues();
+        $table  = $this->getTable();
+        $where  = $this->getWhere($settings);
+        $limit  = $this->getLimit($settings);
 
+        $query = "delete from $table $where $limit";
+        $this->db->query($query, $values);
+        $this->reset($settings);
+        return $this->db->rowCount();
     }
 
-    public function reset(){
+    public function reset(array $settings = []){
+        if(isset($settings['preserve']) && $settings['preserve']){
+            return;
+        }
         $this->fields = [];
     }
 
