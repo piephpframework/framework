@@ -8,7 +8,7 @@ $_ENV = [
         'modules'   => '.'
     ],
     'session' => [
-        'use' => 'no'
+        'use' => 'yes'
     ]
 ];
 
