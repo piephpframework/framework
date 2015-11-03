@@ -2,6 +2,8 @@
 
 namespace Pie\Crust;
 
+use Pie\Pie;
+
 abstract class Service{
 
     protected $values = [];

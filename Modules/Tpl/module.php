@@ -1,6 +1,6 @@
 <?php
 
-use Pie\Crust\Pie;
+use Pie\Pie;
 use Pie\Crust\Scope;
 use Pie\Modules\Tpl\RepeatInfo;
 use Pie\Modules\Tpl\Tpl;

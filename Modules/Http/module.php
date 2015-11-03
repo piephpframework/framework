@@ -1,6 +1,6 @@
 <?php
 
-use Pie\Crust\Pie;
+use Pie\Pie;
 use Pie\Modules\Http\Http;
 
 return call_user_func(function(){

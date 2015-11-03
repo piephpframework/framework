@@ -5,7 +5,7 @@ namespace Pie\Modules\Tpl;
 use DOMDocument;
 use DOMElement;
 use DOMXPath;
-use Pie\Crust\Pie;
+use Pie\Pie;
 use Pie\Modules\Module;
 
 /**

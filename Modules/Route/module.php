@@ -2,7 +2,7 @@
 
 use Pie\Crust\Controller;
 use Pie\Crust\Event;
-use Pie\Crust\Pie;
+use Pie\Pie;
 use Pie\Modules\Route\Route;
 use Pie\Modules\Route\RouteParams;
 

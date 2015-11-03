@@ -1,7 +1,7 @@
 <?php
 
 use Pie\Modules\Session\Session;
-use Pie\Crust\Pie;
+use Pie\Pie;
 
 return call_user_func(function(){
     $app = Pie::module('Session', []);

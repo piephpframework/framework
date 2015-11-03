@@ -17,7 +17,7 @@ Once downloaded, create the file `index.php` inside the document root of your se
 ```php
 <?php
 
-use Pie\Crust\Pie;
+use Pie\Pie;
 
 require_once 'path/to/autoloader.php';
 

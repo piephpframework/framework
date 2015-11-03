@@ -8,7 +8,7 @@ use DOMDocumentType;
 use DOMElement;
 use DOMNode;
 use DOMXPath;
-use Pie\Crust\Pie;
+use Pie\Pie;
 use Pie\Crust\Scope;
 use Pie\Modules\Tpl\Element;
 

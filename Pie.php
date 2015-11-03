@@ -1,6 +1,9 @@
 <?php
 
-namespace Pie\Crust;
+namespace Pie;
+
+use Pie\Crust\RootScope;
+use Pie\Crust\App;
 
 class Pie{
 

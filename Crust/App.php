@@ -2,6 +2,7 @@
 
 namespace Pie\Crust;
 
+use Pie\Pie;
 use Closure;
 use ReflectionFunction;
 use ReflectionMethod;
@@ -118,7 +119,7 @@ class App{
      */
     public function evaluate($eval, Scope $scope = null){
         $toEval = preg_replace_callback("/(?<=').+?(?=')/s", function($matches) use ($scope){
-            $find  = Pie::find($matches[0], $scope);
+            $find = Pie::find($matches[0], $scope);
             return $find !== '' ? $find : $matches[0];
         }, $eval);
 
@@ -127,7 +128,7 @@ class App{
         }
         $isValid = false;
         eval("\$isValid = ($toEval);");
-        
+
         // if($isValid !== true && $isValid !== false){
         //     return false;
         // }
@@ -161,7 +162,7 @@ class App{
      * @return App
      */
     public function config(callable $callback){
-        $call     = $callback->bindTo($this, $this);
+        $call         = $callback->bindTo($this, $this);
         $this->config = $call;
         // $cbParams = $this->_getCbParams($callback);
         // call_user_func_array($call, $cbParams);
