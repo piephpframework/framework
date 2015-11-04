@@ -18,6 +18,7 @@ class Tpl{
     protected $parent     = null;
     protected $scope      = null;
     protected $repeat     = null;
+    protected $repeater   = null;
     protected $index      = null;
 
     public function __construct($parent = null){
@@ -55,11 +56,11 @@ class Tpl{
         return $this->parent;
     }
 
-    public function setRepeat($value){
+    public function setRepeatInfo($value){
         $this->repeat = $value;
     }
 
-    public function getRepeat(){
+    public function getRepeatInfo(){
         return $this->repeat;
     }
 
@@ -179,7 +180,7 @@ class Tpl{
 
         // Load the document
         libxml_use_internal_errors(true);
-        $html = '<directive>' . file_get_contents($filename) . '</directive>';
+        $html = '<div>' . file_get_contents($filename) . '</div>';
         $doc->loadHTML($html, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
         libxml_use_internal_errors(false);
 
@@ -213,9 +214,6 @@ class Tpl{
                                 $find = explode('.', $find);
                                 array_shift($find);
                                 $find = implode('.', $find);
-                            }
-                            if($repkeys[0] == trim($attrVal, '{}')){
-                                 $find = $repkeys[1] . '[' . $this->getIndex() . ']';
                             }
                         }
                         $val = Pie::find($find, $scope);
@@ -308,7 +306,7 @@ class Tpl{
 
             libxml_use_internal_errors(true);
             // $incldoc->loadHTMLFile($filename, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
-            $html = '<view>' . file_get_contents($filename). '</view>';
+            $html = '<div>' . file_get_contents($filename). '</div>';
             $incldoc->loadHTML($html, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
             libxml_use_internal_errors(false);
 

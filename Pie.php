@@ -57,6 +57,24 @@ class Pie{
         return $obj;
     }
 
+    public static function findRecursive($find, $scope){
+        $value   = Pie::find($find, $scope);
+        if($value === ''){
+            $cscope = $scope->getParentScope();
+            do{
+                if($cscope === null){
+                    break;
+                }
+                $value = Pie::find($find, $cscope);
+                if($value !== null){
+                    break;
+                }
+                $cscope = $cscope->getParentScope();
+            }while(true);
+        }
+        return $value;
+    }
+
 }
 
 Pie::$rootScope = new RootScope();

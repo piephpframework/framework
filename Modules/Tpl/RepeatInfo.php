@@ -14,11 +14,13 @@ namespace Pie\Modules\Tpl;
  */
 class RepeatInfo{
 
-    protected $length = 0;
-    protected $offset = 0;
+    protected $length   = 0;
+    protected $offset   = 0;
+    protected $repeater = '';
 
-    public function __construct($length){
+    public function __construct($length, $repeater){
         $this->length = $length;
+        $this->repeater = $repeater;
     }
 
     public function __get($name){
@@ -27,6 +29,14 @@ class RepeatInfo{
 
     public function incrementOffset($amount = 1){
         $this->offset += $amount;
+    }
+
+    public function setRepeater($value){
+        $this->repeater = $value;
+    }
+
+    public function getRepeater(){
+        return $this->repeater;
     }
 
 }

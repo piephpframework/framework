@@ -106,12 +106,15 @@ return call_user_func(function(){
             'restrict' => 'A',
             'link'     => function(Scope $scope, Element $element, TplAttr $attr){
                 $repkeys = array_map('trim', explode(' in ', $attr->value, 2));
-                $value   = Pie::find($repkeys[1], $scope);
+                $value   = Pie::findRecursive($repkeys[1], $scope);
+                if($value == ''){
+                    $value = $scope->properties;
+                }
                 $items   = new DOMDocument();
                 $frag    = $items->createDocumentFragment();
-                if(is_array($value) || $value instanceof Iterator){
-                    $length     = $value instanceof Iterator ? $value->length : count($value);
-                    $repeatInfo = new RepeatInfo($length);
+                if(is_array($value) || $value instanceof Iterator || $value instanceof stdClass){
+                    $length = $value instanceof Iterator ? $value->length : count($value);
+                    $repeatInfo = new RepeatInfo($length, $repkeys[0]);
                     foreach($value as $index => $item){
                         if(!is_array($item) || $item instanceof Iterator){
                             $item = [$item];
@@ -120,7 +123,7 @@ return call_user_func(function(){
                         $doc->appendChild($doc->importNode($element->node, true));
                         $tpl = new Tpl($attr->tpl->getParent());
                         $tpl->setIndex($index);
-                        $tpl->setRepeat($repeatInfo);
+                        $tpl->setRepeatInfo($repeatInfo);
                         $tpl->setScope(new Scope($item, $scope));
                         $tpl->setDirectives($attr->tpl->getDirectives());
                         $tpl->setFilters($attr->tpl->getFilters());
@@ -165,24 +168,11 @@ return call_user_func(function(){
                 $repeat  = $element->node->ownerDocument->documentElement->getAttribute('repeat');
                 $content = array_map('trim', explode('|', $attr->value));
                 if($repeat){
-                    $find = repeatFinder($repeat, $content);
+                    $find = repeatFinder($repeat, $content, $attr->tpl);
                 }else{
                     $find = $content[0];
                 }
-                $value = Pie::find($find, $scope);
-                if($value === null){
-                    $cscope = $scope->getParentScope();
-                    do{
-                        if($cscope === null){
-                            break;
-                        }
-                        $value = Pie::find($find, $cscope);
-                        if($value !== null){
-                            break;
-                        }
-                        $cscope = $cscope->getParentScope();
-                    }while(true);
-                }
+                $value = Pie::findRecursive($find, $scope);
                 if($content[0] == '$value' && $value instanceof Scope){
                     $value = $value->get(0);
                 }elseif($content[0] == '$index' && $value instanceof Scope){
@@ -193,10 +183,16 @@ return call_user_func(function(){
                     $element->node->nodeValue = '';
                     if(is_string($value) && strlen(strip_tags($value)) != strlen($value)){
                         $htmldoc = new DOMDocument();
+                        $value = '<div>' . $value . '</div>';
                         $htmldoc->loadHTML($value, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
                         $element->node->appendChild($element->node->ownerDocument->importNode($htmldoc->documentElement, true));
                     }elseif($value instanceof Scope){
-                        $element->node->nodeValue = $value->get(0);
+                        $v = $value->get(0);
+                        if(!is_string($v) && (is_array($v) || $v instanceof Iterator)){
+                            $ks = explode('.', $attr->value);
+                            $v = Pie::findRecursive($ks[1], $v);
+                        }
+                        $element->node->nodeValue = $v;
                     }else{
                         $element->node->nodeValue = $value;
                     }
@@ -235,7 +231,8 @@ return call_user_func(function(){
                 $filename = $attr->tpl->getRealFile($attr->value);
 
                 libxml_use_internal_errors(true);
-                $doc->loadHTMLFile($filename, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
+                $html = '<div>' . file_get_contents($filename) . '</div>';
+                $doc->loadHTML($html, LIBXML_HTML_NODEFDTD | LIBXML_HTML_NOIMPLIED);
                 libxml_use_internal_errors(false);
 
                 $element->node->appendChild($attr->doc->importNode($doc->documentElement, true));
@@ -258,7 +255,7 @@ return call_user_func(function(){
                 }else{
                     $find = $content[0];
                 }
-                $find = Pie::find($find, $scope);
+                $find = Pie::findRecursive($find, $scope);
                 $result = false;
                 if(!empty($find)){
                     eval('$result = (bool)(' . $find . ');');

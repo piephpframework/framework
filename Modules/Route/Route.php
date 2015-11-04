@@ -33,10 +33,13 @@ class Route{
         if(!is_array($settings) && !($settings instanceof Controller)){
             throw new Exception('$settings must be either an array or instance of Controller');
         }
-        $this->routes[] = array(
-            "path"     => $path,
-            "settings" => $settings
-        );
+        $paths = !is_array($path) ? [$path] : $path;
+        foreach($paths as $path){
+            $this->routes[] = array(
+                "path"     => $path,
+                "settings" => $settings
+            );
+        }
         return $this;
     }
 

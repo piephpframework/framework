@@ -2,6 +2,8 @@
 
 namespace Pie\Crust;
 
+use stdClass;
+
 /**
  * @property Scope $parentScope The parent scope
  */
@@ -22,6 +24,8 @@ class Scope{
     public function __get($name){
         if(isset($this->properties[$name])){
             return $this->properties[$name];
+        }elseif($name == 'properties'){
+            return $this->properties;
         }
         return '';
     }

@@ -19,8 +19,11 @@ class ArrayList extends Service implements Iterator{
      * @param mixed $type
      * @throws Exception
      */
-    public function __construct($type){
-        if(class_exists($type)){
+    public function __construct($type = null){
+        if(is_array($type)){
+            $this->type = null;
+            $this->items = $type;
+        }elseif(class_exists($type)){
             $this->type = $type;
         }else{
             throw new Exception($type . ' is not a valid class');
@@ -41,6 +44,8 @@ class ArrayList extends Service implements Iterator{
      */
     public function add($object){
         if($object instanceof $this->type){
+            $this->items[] = $object;
+        }elseif($this->type === null && gettype($object) == 'array'){
             $this->items[] = $object;
         }else{
             throw new Exception(get_class($object) . ' is not an instances of ' . $this->type);

@@ -10,11 +10,14 @@ namespace Pie\Modules\Route;
  */
 class RouteParams{
 
-    private $parameters = array();
+    private $parameters = [];
+    private $length = 0;
 
     public function __get($name){
         if(isset($this->parameters[$name])){
             return $this->parameters[$name];
+        }elseif($name == 'length'){
+            return count($this->parameters);
         }
         return '';
     }
