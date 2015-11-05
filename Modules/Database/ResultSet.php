@@ -27,6 +27,10 @@ class ResultSet implements Iterator{
         }
     }
 
+    public function __set($name, $value){
+        var_dump($name, $value);
+    }
+
     public function __get($name){
         switch($name){
             case 'length':
@@ -88,6 +92,27 @@ class ResultSet implements Iterator{
      */
     public function current(){
         return current($this->items);
+    }
+
+    /**
+     * Adds a value to to the array
+     * @param mixed $offset The offset of the key
+     * @param mixed $key The second key in a multi level array or value in a single level array
+     * @param mixed $value The value for a multi level array
+     * @return ResultSet
+     */
+    public function addValue($offset, $key, $value = null){
+        $args = func_num_args();
+        if($args === 3){
+            if(isset($this->items[$offset])){
+                $this->items[$offset][$key] = $value;
+            }
+        }elseif($args === 2){
+            if(isset($this->items[$offset])){
+                $this->items[$offset] = $key;
+            }
+        }
+        return $this;
     }
 
     /**

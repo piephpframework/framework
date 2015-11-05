@@ -117,9 +117,10 @@ class App{
      * @param string $eval The string to be evaluated
      * @param Scope $scope The scope to test evaluations
      */
-    public function evaluate($eval, Scope $scope = null){
-        $toEval = preg_replace_callback("/(?<=').+?(?=')/s", function($matches) use ($scope){
-            $find = Pie::find($matches[0], $scope);
+    public function evaluate($eval, Scope $scope = null, $repeater = ''){
+        $toEval = preg_replace_callback("/(?<=').+?(?=')/s", function($matches) use ($scope, $repeater){
+            $find = preg_replace('/^' . $repeater . '\./', '', $matches[0]);
+            $find = Pie::findRecursive($find, $scope);
             return $find !== '' ? $find : $matches[0];
         }, $eval);
 
@@ -129,9 +130,6 @@ class App{
         $isValid = false;
         eval("\$isValid = ($toEval);");
 
-        // if($isValid !== true && $isValid !== false){
-        //     return false;
-        // }
         return (bool)$isValid;
     }
 

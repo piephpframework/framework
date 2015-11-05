@@ -202,9 +202,22 @@ class Tpl{
                 if(preg_match_all('/\{\{(.+?)\}\}/', $attr->value, $matches)){
                     $attrVal = $attr->value;
                     foreach($matches[1] as $match){
-                        // var_dump($match);
                         $content = array_map('trim', explode('|', $match));
                         $find    = array_shift($content);
+                        $concat = array_map('trim', explode('+', $find));
+                        $idx = 0;
+                        if(count($concat) > 1){
+                            foreach($concat as $index => $value){
+                                if(strpos($value, '\'') !== false){
+                                    continue;
+                                }
+                                $idx = $index;
+                                $find = $value;
+                                array_walk($concat, function(&$val){$val = trim($val, '\'');});
+                            }
+                        }else{
+                            $find = $concat[0];
+                        }
                         if($repeat){
                             $repkeys = array_map('trim', explode('in', $repeat));
                             if(count(explode('.', $find)) == 1 && $repkeys[0] == explode('.', $find)[0]){
@@ -222,6 +235,10 @@ class Tpl{
                         }
                         $val = $this->functions($val, $content, $scope);
                         if(is_string($val)){
+                            if(count($concat) > 1){
+                                $concat[$idx] = $val;
+                                $val = implode('', $concat);
+                            }
                             $attrVal = preg_replace('/\{\{(.+?)\}\}/', $val, $attrVal, 1);
                         }
                     }
