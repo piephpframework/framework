@@ -78,6 +78,7 @@ class Route{
      */
     public function setStrict($isStrict){
         $this->strict = (bool)$isStrict;
+        return $this;
     }
 
     /**
