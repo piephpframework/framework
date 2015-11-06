@@ -19,6 +19,7 @@ class App{
             $controllers = [],
             $directives  = [],
             $services    = [],
+            $events      = [],
             $filters     = [],
             $parent      = null;
 
@@ -134,6 +135,43 @@ class App{
     }
 
     /**
+     * Creates an event listener to listen for an event.
+     * Modules can have more than one event with the same name
+     * @param string $name The name of the event
+     * @param Closure $callback The event to be executed
+     */
+    public function listen($name, callable $callback){
+        if($callback instanceof Closure){
+            $this->events[$name][] = $callback;
+        }
+    }
+
+    /**
+     * Broadcasts an event to all the listeners listening
+     * @param string $name The event to run
+     * @param array $array The list of arguments to pass to the event
+     */
+    public function broadcast($name, array $args = []){
+        // Run all events within the current module
+        if(isset($this->events[$name])){
+            foreach($this->events[$name] as $event){
+                if($event instanceof Closure){
+                    $evt = new ReflectionFunction($event);
+                    $argCount = count($args);
+                    if($argCount >= $evt->getNumberOfRequiredParameters() && $argCount <= $evt->getNumberOfParameters()){
+                        call_user_func_array($event, $args);
+                    }
+                }
+            }
+        }
+        // Move to the parent and run those listeners
+        $parent = $this->getParent();
+        if($parent !== null){
+            $parent->broadcast($name, $args);
+        }
+    }
+
+    /**
      * Fires off an event to listening dependencies
      * @param Event $event
      */
@@ -175,26 +213,9 @@ class App{
      * @return App
      */
     public function controller($name, $callback, $method = null){
-//        $callname = $name;
-//        $pos      = strrpos($name, '\\');
-//        if($pos > 0){
-//            $callname = substr($name, $pos + 1);
-//        }
-
         $this->controllers[$name] = new Controller($name, $callback, $method);
         $this->controllers[$name]->setScope(new Scope());
         return $this->controllers[$name];
-//        if(is_callable($callback)){
-//            $this->controllers[$callname]['controller'] = $callback;
-//        }elseif(is_string($callback)){
-//            $this->controllers[$callname]['controller'] = new $name();
-//            $this->controllers[$callname]['method']     = $callback;
-//        }else{
-//            throw new Exception('Invalid callback, must be a callable or a string');
-//        }
-//        $this->controllers[$callname]['scope'] = new Scope();
-//        $this->controllers[$callname]['call']  = null;
-//        return $this;
     }
 
     /**
@@ -221,8 +242,7 @@ class App{
      */
     public function directive($name, $object){
         $call                    = $object->bindTo($this, $this);
-        // $cbParams                = $this->_getCbParams($call);
-        $this->directives[$name] = $call;// call_user_func_array($call, $cbParams);
+        $this->directives[$name] = $call;
         return $this;
     }
 
@@ -267,46 +287,12 @@ class App{
             return $current->call($name, $current->getParent());
         }
         return new Call();
-
-//        if(isset($this->controllers[$name])){
-//            if(!$this->controllers[$name]['call']){
-//                $call = $this->runController($this->controllers[$name]);
-//            }else{
-//                $call = $this->controllers[$name]['call'];
-//            }
-//            if($call instanceof Call){
-//                return $call;
-//            }
-//        }
-//        foreach($this->getApps() as $app){
-//            $controllers = $app->getControllers();
-//            if(isset($controllers[$name])){
-//                if(!$controllers[$name]['call']){
-//                    $call = $this->runController($controllers[$name]);
-//                    return $call;
-//                }elseif($controllers[$name]['call']){
-//                    $call = $controllers[$name]['call'];
-//                }
-//            }
-//        }
-//        if(!isset($call)){
-//            return new Call();
-//        }
-//        return $call;
     }
 
     public function exec($controller){
-//        if(is_array($name)){
-//            $name = $name['controller'];
-//        }
-
         if($controller instanceof Controller){
             $call = $this->runController($controller);
-        }
-//        if(isset($this->controllers[$name])){
-//            $call = $this->runController($this->controllers[$name]);
-//        }
-        else{
+        }else{
             $call = new Call();
         }
         return $call;

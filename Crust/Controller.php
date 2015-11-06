@@ -30,12 +30,12 @@ class Controller{
     public function __construct($name, $callback = null, $method = null){
 
         $this->name = $name;
-        
+
         if(is_callable($callback)){
             $this->controller = $callback;
         }elseif(is_string($callback)){
             $this->controller = new $callback();
-            $method           = $method !== null ? $method : $callback;
+            $method           = $method !== null ? $method : $name;
             $this->method     = $method;
         }else{
             throw new Exception('Invalid callback, must be a callable or a string');

@@ -18,6 +18,7 @@ spl_autoload_register(function($class){
     $sourceRoot = strpos($base, '/') === 0 ? $base : $_SERVER['DOCUMENT_ROOT'] . '/' . $base;
     // Attpempt to load from the source root
     $filename   = $sourceRoot . '/' . str_replace('\\', '/', $class) . '.php';
+
     if(is_file($filename)){
         require_once $filename;
         return;
