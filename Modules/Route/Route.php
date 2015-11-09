@@ -36,7 +36,7 @@ class Route{
         $paths = !is_array($path) ? [$path] : $path;
         foreach($paths as $path){
             $this->routes[] = array(
-                "path"     => $path,
+                "path"     => rtrim($path, '/'),
                 "settings" => $settings
             );
         }

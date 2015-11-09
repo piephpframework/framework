@@ -13,7 +13,7 @@ class Media{
         Video = 'video',
         Audio = 'audio';
 
-    public function getMedia($type){
+    public function get($type){
         switch($type){
             case self::Image:
                 return new Image();

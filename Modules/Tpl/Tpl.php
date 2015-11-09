@@ -78,6 +78,7 @@ class Tpl{
 
     public function processNode(DOMNode $element){
         if($element instanceof DOMElement){
+            $this->braces($element);
             $nodes = $element->childNodes;
             for($i = 0; $i < $nodes->length; $i++){
                 $node = $nodes->item($i);
@@ -90,7 +91,10 @@ class Tpl{
     }
 
     public function editNode(DOMNode $node){
-        $processed = 0;
+        // Replace the braces within attributes
+        if($node instanceof DOMElement){
+            $this->braces($node);
+        }
         foreach($this->directives as $name => $directive){
             if($directive instanceof Closure){
                 $cbParams  = $this->parent->getCallbackArgs($directive);
@@ -101,33 +105,27 @@ class Tpl{
             $tplAttr->tpl = $this;
             $tplAttr->doc = $node->ownerDocument;
 
-            // Replace the braces within attributes
             if($node instanceof DOMElement){
-                $this->braces($node, $this->scope);
-            }
-
-            // Execute the Element directives
-            if(in_array('E', $restrictions) && $node instanceof DOMElement && $name == $node->tagName){
                 $element = $this->getElement($directive, $node);
                 $scope   = $this->directiveController($directive);
-                $this->directiveLink($name, $directive, $element, $node, 'E', $scope, $tplAttr, $node->nodeValue);
-                $this->directiveTemplate($directive, $element, $node, $scope);
-                $processed++;
-            }
-
-            // Execute the Attribute directives
-            elseif(in_array('A', $restrictions) && $node instanceof DOMElement){
-                if($node->hasAttribute($name)){
-                    $attr    = $node->getAttribute($name);
-                    $element = $this->getElement($directive, $node);
-                    $scope   = $this->directiveController($directive);
-                    $this->directiveLink($name, $directive, $element, $node, 'A', $scope, $tplAttr, $attr);
+                // Execute the Element directives
+                if(in_array('E', $restrictions) && $name == $node->tagName){
+                    $this->directiveLink($name, $directive, $element, $node, 'E', $scope, $tplAttr, $node->nodeValue);
                     $this->directiveTemplate($directive, $element, $node, $scope);
-                    $processed++;
+                }
+
+                // Execute the Attribute directives
+                elseif(in_array('A', $restrictions)){
+                    if($node->hasAttribute($name)){
+                        $attr    = $node->getAttribute($name);
+                        // $element = $this->getElement($directive, $node);
+                        // $scope   = $this->directiveController($directive);
+                        $this->directiveLink($name, $directive, $element, $node, 'A', $scope, $tplAttr, $attr);
+                        $this->directiveTemplate($directive, $element, $node, $scope);
+                    }
                 }
             }
         }
-        return $processed;
     }
 
     protected function getElement($directive, DOMElement $node){
@@ -166,7 +164,7 @@ class Tpl{
             $tpl->setScope($scope);
             $tpl->setDirectives($this->directives);
             $tpl->setFilters($this->filters);
-            $tpl->processNode($element->node);
+            // $tpl->processNode($element->node);
             $newNode = $node->ownerDocument->importNode($element->node, true);
             $newChild = $node->parentNode->replaceChild($newNode, $node);
         }
@@ -187,7 +185,8 @@ class Tpl{
         return new Element($doc->documentElement);
     }
 
-    protected function braces(DOMElement $node, Scope $scope){
+    protected function braces(DOMElement $node, Scope $scope = null){
+        $scope  = $scope === null ? $this->scope : $scope;
         $path   = $node->getNodePath();
         $xpath  = new DOMXPath($node->ownerDocument);
         $repeat = $node->ownerDocument->documentElement->getAttribute('repeat');
@@ -195,51 +194,60 @@ class Tpl{
             $repeat = $node->getAttribute('repeat');
         }
         /* @var $scopeNode DOMElement */
-        foreach($xpath->query($path . '[@.=(contains(., "{{") and contains(., "}}"))]') as $scopeNode){
+        foreach($xpath->query($path . '[@.=(contains(., "[[") and contains(., "]]"))]') as $scopeNode){
             foreach($scopeNode->attributes as $attr){
                 $matches = [];
                 // var_dump($attr->value);
-                if(preg_match_all('/\{\{(.+?)\}\}/', $attr->value, $matches)){
+                if(preg_match_all('/\[\[(.+?)\]\]/', $attr->value, $matches)){
+                    // var_dump($attr->value);
                     $attrVal = $attr->value;
                     foreach($matches[1] as $match){
-                        $content = array_map('trim', explode('|', $match));
-                        $find    = array_shift($content);
-                        $concat = array_map('trim', explode('+', $find));
-                        $idx = 0;
-                        if(count($concat) > 1){
-                            foreach($concat as $index => $value){
-                                if(strpos($value, '\'') !== false){
-                                    continue;
-                                }
-                                $idx = $index;
-                                $find = $value;
-                                array_walk($concat, function(&$val){$val = trim($val, '\'');});
-                            }
+                        // Use the index
+                        if($match == '$index'){
+                            $val = $this->index;
                         }else{
-                            $find = $concat[0];
-                        }
-                        if($repeat){
-                            $repkeys = array_map('trim', explode('in', $repeat));
-                            if(count(explode('.', $find)) == 1 && $repkeys[0] == explode('.', $find)[0]){
-                                $find = $repkeys[1] . '[' . $this->getIndex() . ']';
-                            }
-                            if($repkeys[0] == explode('.', $find)[0]){
-                                $find = explode('.', $find);
-                                array_shift($find);
-                                $find = implode('.', $find);
-                            }
-                        }
-                        $val = Pie::find($find, $scope);
-                        if(!$val){
-                            $val = Pie::find($find, $scope->getParentScope());
-                        }
-                        $val = $this->functions($val, $content, $scope);
-                        if(is_string($val)){
+                            $content = array_map('trim', explode('|', $match));
+                            $find    = array_shift($content);
+                            $concat = array_map('trim', explode('+', $find));
+                            $idx = 0;
                             if(count($concat) > 1){
+                                foreach($concat as $index => $value){
+                                    if(strpos($value, '\'') !== false){
+                                        continue;
+                                    }
+                                    $idx = $index;
+                                    $find = $value;
+                                    array_walk($concat, function(&$val){$val = trim($val, '\'');});
+                                }
+                            }else{
+                                $find = $concat[0];
+                            }
+                            if($repeat){
+                                $repkeys = array_map('trim', explode(' in ', $repeat));
+                                if(count(explode('.', $find)) == 1 && $repkeys[0] == explode('.', $find)[0]){
+                                    $find = $repkeys[1] . '[' . $this->getIndex() . ']';
+                                }
+                                if($repkeys[0] == explode('.', $find)[0]){
+                                    $find = explode('.', $find);
+                                    array_shift($find);
+                                    $find = implode('.', $find);
+                                }
+                            }
+                            $val = Pie::find($find, $scope);
+                            if(!$val){
+                                $val = Pie::find($find, $scope->getParentScope());
+                            }
+                            $val = $this->functions($val, $content, $scope);
+                        }
+                        if(is_string($val) || is_numeric($val)){
+                            // Put the concatinated values back together
+                            if(isset($concat) && count($concat) > 1){
                                 $concat[$idx] = $val;
                                 $val = implode('', $concat);
                             }
-                            $attrVal = preg_replace('/\{\{(.+?)\}\}/', $val, $attrVal, 1);
+                            if(!empty($val)){
+                                $attrVal = preg_replace('/\[\[(.+?)\]\]/', $val, $attrVal, 1);
+                            }
                         }
                     }
                     $scopeNode->setAttribute($attr->name, $attrVal);

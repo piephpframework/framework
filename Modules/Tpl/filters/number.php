@@ -2,6 +2,7 @@
 
 $app->filter('number', function(){
     return function ($value, $decimals = 0){
+        $value = is_object($value) ? null : $value;
         return number_format((float)$value, (int)$decimals);
     };
 });

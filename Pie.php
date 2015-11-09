@@ -4,6 +4,7 @@ namespace Pie;
 
 use Pie\Crust\RootScope;
 use Pie\Crust\App;
+use Pie\Modules\Route\RouteParams;
 
 class Pie{
 
@@ -40,6 +41,8 @@ class Pie{
                 $obj = $_REQUEST;
             }elseif($path[$i] == '$cookie'){
                 $obj = $_COOKIE;
+            }elseif($path[$i] == '$route'){
+                $obj = RouteParams::$parameters;
             }elseif($path[$i] == '$root'){
                 $obj = Pie::$rootScope;
             }elseif($path[$i] == '$length'){

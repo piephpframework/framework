@@ -86,6 +86,14 @@ class ResultSet implements Iterator{
         return $this->items;
     }
 
+    public function keyVal($key, $value){
+        $array = array();
+        foreach($this->items as $arr){
+            $array[$arr[$key]] = $arr[$value];
+        }
+        return $array;
+    }
+
     /**
      * Gets the current list item
      * @return mixed
