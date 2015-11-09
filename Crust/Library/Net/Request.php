@@ -25,7 +25,7 @@ class Request extends Service{
      * @return array
      */
     public function query(){
-        return $_GET;
+        return (object)$_GET;
     }
 
     /**

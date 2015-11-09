@@ -16,7 +16,7 @@ return call_user_func(function(){
     $app->service('routeParams', $routeParams);
 
     $app->method = strtolower(filter_input(INPUT_SERVER, 'REQUEST_METHOD'));
-    $app->path   = $route->pathToArray(filter_input(INPUT_SERVER, 'REQUEST_URI'));
+    $app->path   = $route->pathToArray(rtrim(filter_input(INPUT_SERVER, 'REQUEST_URI'), '/'));
     $app->query  = $route->queryString(filter_input(INPUT_SERVER, 'REQUEST_URI'));
 
     parse_str($app->query, $_GET);

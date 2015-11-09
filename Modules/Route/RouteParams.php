@@ -10,20 +10,20 @@ namespace Pie\Modules\Route;
  */
 class RouteParams{
 
-    private $parameters = [];
+    public static $parameters = [];
     private $length = 0;
 
     public function __get($name){
-        if(isset($this->parameters[$name])){
-            return $this->parameters[$name];
+        if(isset(self::$parameters[$name])){
+            return self::$parameters[$name];
         }elseif($name == 'length'){
-            return count($this->parameters);
+            return count(self::$parameters);
         }
         return '';
     }
 
     public function __set($name, $value){
-        $this->parameters[$name] = $value;
+        self::$parameters[$name] = $value;
     }
 
     /**
@@ -32,8 +32,8 @@ class RouteParams{
      * @return string
      */
     public function getParameter($name, $default = null){
-        if(isset($this->parameters[$name])){
-            return $this->parameters[$name];
+        if(isset(self::$parameters[$name])){
+            return self::$parameters[$name];
         }
         return $default;
     }
@@ -43,7 +43,7 @@ class RouteParams{
      * @return array
      */
     public function getParameters(){
-        return $this->parameters;
+        return self::$parameters;
     }
 
 }

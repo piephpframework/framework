@@ -143,6 +143,10 @@ class Db{
         return $this->db->lastInsertId();
     }
 
+    public function concat(array $items, $separator = ','){
+        return implode($separator, array_pad([], count($items), '?'));
+    }
+
     /**
      * Binds items to their placeholder
      * @param string $query

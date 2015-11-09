@@ -107,11 +107,12 @@ return call_user_func(function(){
             'link'     => function(Scope $scope, Element $element, TplAttr $attr){
                 $repkeys = array_map('trim', explode(' in ', $attr->value, 2));
                 $value   = Pie::findRecursive($repkeys[1], $scope);
-                if($value == ''){
-                    $value = $scope->properties;
-                }
-                $items   = new DOMDocument();
-                $frag    = $items->createDocumentFragment();
+                // var_dump($value);
+                // if($value == ''){
+                //     $value = $scope->properties;
+                // }
+                $items = new DOMDocument();
+                $frag  = $items->createDocumentFragment();
                 if(is_array($value) || $value instanceof Iterator || $value instanceof stdClass){
                     $length = $value instanceof Iterator ? $value->length : count($value);
                     $repeatInfo = new RepeatInfo($length, $repkeys[0]);
@@ -177,6 +178,7 @@ return call_user_func(function(){
                     $value = $value->get(0);
                 }elseif($content[0] == '$index' && $value instanceof Scope){
                     $value = $attr->tpl->getIndex();
+                    // var_dump($value);
                 }
                 $value = $attr->tpl->functions($value, $content, $scope);
                 if($attr->type == 'A'){
@@ -278,6 +280,33 @@ return call_user_func(function(){
                     $element->node->parentNode->removeChild($element->node);
                 }else{
                     $element->node->removeAttribute($tplAttr->name);
+                }
+            }
+        ];
+    });
+    $app->directive('select', function(){
+        return [
+            'restrict' => 'E',
+            'link' => function(Scope $scope, Element $element, TplAttr $tpl){
+                $items = $element->node->getAttribute('items');
+                if($items){
+                    $val = Pie::findRecursive($items, $scope);
+                    if(is_array($val)){
+                        foreach($val as $index => $value){
+                            $option = $element->node->ownerDocument->createElement('option');
+                            $useVal = $value;
+                            if(is_array($value) && isset($value['selected'])){
+                                $option->setAttribute('selected', 'selected');
+                                $useVal = $value['selected'];
+                            }elseif(is_array($value)){
+                                $useVal = array_shift($value);
+                            }
+                            $option->setAttribute('value', $index);
+                            $option->nodeValue = $useVal;
+                            $element->node->appendChild($option);
+                        }
+                    }
+                    $element->node->removeAttribute('items');
                 }
             }
         ];

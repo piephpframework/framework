@@ -124,7 +124,7 @@ class App{
             $find = Pie::findRecursive($find, $scope);
             return $find !== '' ? $find : $matches[0];
         }, $eval);
-
+        
         if(empty($toEval)){
             return false;
         }
