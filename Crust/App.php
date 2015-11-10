@@ -144,14 +144,16 @@ class App{
         if($callback instanceof Closure){
             $this->events[$name][] = $callback;
         }
+        return $this;
     }
 
     /**
      * Broadcasts an event to all the listeners listening
      * @param string $name The event to run
      * @param array $array The list of arguments to pass to the event
+     * @param int $count The number of listeners executed
      */
-    public function broadcast($name, array $args = []){
+    public function broadcast($name, array $args = [], &$count = 0){
         // Run all events within the current module
         if(isset($this->events[$name])){
             foreach($this->events[$name] as $event){
@@ -160,6 +162,7 @@ class App{
                     $argCount = count($args);
                     if($argCount >= $evt->getNumberOfRequiredParameters() && $argCount <= $evt->getNumberOfParameters()){
                         call_user_func_array($event, $args);
+                        $count++;
                     }
                 }
             }
@@ -167,8 +170,9 @@ class App{
         // Move to the parent and run those listeners
         $parent = $this->getParent();
         if($parent !== null){
-            $parent->broadcast($name, $args);
+            $parent->broadcast($name, $args, $count);
         }
+        return $this;
     }
 
     /**

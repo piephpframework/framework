@@ -108,9 +108,9 @@ return call_user_func(function(){
                 $repkeys = array_map('trim', explode(' in ', $attr->value, 2));
                 $value   = Pie::findRecursive($repkeys[1], $scope);
                 // var_dump($value);
-                // if($value == ''){
-                //     $value = $scope->properties;
-                // }
+                if($value == ''){
+                    $value = $scope->properties;
+                }
                 $items = new DOMDocument();
                 $frag  = $items->createDocumentFragment();
                 if(is_array($value) || $value instanceof Iterator || $value instanceof stdClass){
@@ -271,6 +271,10 @@ return call_user_func(function(){
         ];
     });
 
+    /**
+     * Shows an element if it evaluates to true
+     * @attr show A string to evaluate
+     */
     $app->directive('show', function(){
         return [
             'restrict' => 'A',
@@ -284,6 +288,15 @@ return call_user_func(function(){
             }
         ];
     });
+
+    /**
+     * Creates a select field based on an array
+     * @element select The select element to populate
+     * @attr items A reference to the item array
+     *
+     * Example array:
+     * ['value' => 'text', 'default' => ['selected' => 'default']]
+     */
     $app->directive('select', function(){
         return [
             'restrict' => 'E',
