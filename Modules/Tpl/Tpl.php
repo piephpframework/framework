@@ -245,9 +245,7 @@ class Tpl{
                                 $concat[$idx] = $val;
                                 $val = implode('', $concat);
                             }
-                            if(!empty($val)){
-                                $attrVal = preg_replace('/\[\[(.+?)\]\]/', $val, $attrVal, 1);
-                            }
+                            $attrVal = preg_replace('/\[\[(.+?)\]\]/', $val, $attrVal, 1);
                         }
                     }
                     $scopeNode->setAttribute($attr->name, $attrVal);

@@ -33,7 +33,7 @@ class Request extends Service{
      * @return array
      */
     public function post(){
-        return $_POST;
+        return (object)$_POST;
     }
 
     /**
@@ -41,7 +41,7 @@ class Request extends Service{
      * @return array
      */
     public function cookie(){
-        return $_COOKIE;
+        return (object)$_COOKIE;
     }
 
     /**
@@ -49,7 +49,7 @@ class Request extends Service{
      * @return array
      */
     public function session(){
-        return $_SESSION;
+        return (object)$_SESSION;
     }
 
     /**
@@ -57,7 +57,7 @@ class Request extends Service{
      * @return array
      */
     public function server(){
-        return $_SERVER;
+        return (object)$_SERVER;
     }
 
     /**

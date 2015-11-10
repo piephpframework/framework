@@ -131,8 +131,15 @@ class Model{
     /**
      * Edits items in the database
      */
-    public function edit(){
+    public function edit(array $settings = []){
+        $values = $this->getValues($settings);
+        $table  = $this->getTable();
+        $keyval = $this->getKeyValue($settings);
+        $where  = $this->getWhere($settings);
+        $limit  = $this->getLimit($settings);
 
+        $query = "update $table set $keyval $where $limit";
+        $this->db->query($query, $values);
     }
 
     /**
@@ -187,8 +194,14 @@ class Model{
     }
 
     protected function getValues(array $settings = []){
-        $vals = array_values($this->fields);
         $keys = array_keys($this->fields);
+        $vals = array_values($this->fields);
+        if(isset($settings['fields'])){
+            foreach($settings['fields'] as $index => $value){
+                $keys[] = $index;
+                $vals[] = $value;
+            }
+        }
         $arr  = [];
         foreach($vals as $index => $val){
             if(isset($settings['where']['ignoredColumns']) && in_array($keys[$index], $settings['where']['ignoredColumns'])){
@@ -214,15 +227,37 @@ class Model{
         throw new Exception("Invalid table name '$this->table'");
     }
 
-    protected function getWhere(array $settings = []){
+    protected function getKeyValue(array $settings = []){
         $keys = array_keys($this->fields);
         $vals = array_values($this->fields);
+        $items = $this->toKeyVal($keys, $vals, $settings);
+        return implode(', ', $items);
+    }
 
+    protected function getWhere(array $settings = []){
+        if(isset($settings['fields'])){
+            $keys = array_keys($settings['fields']);
+            $vals = array_values($settings['fields']);
+        }else{
+            $keys = array_keys($this->fields);
+            $vals = array_values($this->fields);
+        }
+
+        $items = $this->toKeyVal($keys, $vals, $settings);
+
+        $str = '';
+        if(!isset($settings['where']['where']) || $settings['where']['where'] === true){
+            $str = count($items) > 0 ? ' where ' : '';
+        }
+        if(isset($settings['comp']) && count($settings['comp']) > 0){
+            return $str . implode(' ', $items);
+        }
+        return $str . implode(' and ', $items);
+    }
+
+    protected function toKeyVal($keys, $vals, array $settings = []){
         $items = [];
         foreach($keys as $index => $value){
-            if($value instanceof Sub){
-                echo 'here';
-            }
             if(isset($settings['where']['ignoredColumns']) && in_array($value, $settings['where']['ignoredColumns'])){
                 continue;
             }
@@ -246,15 +281,7 @@ class Model{
                 }
             }
         }
-
-        $str = '';
-        if(!isset($settings['where']['where']) || $settings['where']['where'] === true){
-            $str = count($items) > 0 ? ' where ' : '';
-        }
-        if(isset($settings['comp']) && count($settings['comp']) > 0){
-            return $str . implode(' ', $items);
-        }
-        return $str . implode(' and ', $items);
+        return $items;
     }
 
     protected function getLimit(array $settings){
