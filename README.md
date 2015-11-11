@@ -19,6 +19,7 @@ Once downloaded, create the file `index.php` inside the document root of your se
 
 use Pie\Pie;
 
+// Replace with your path
 require_once 'path/to/autoloader.php';
 
 $app = Pie::module('Welcome', []);
@@ -81,4 +82,79 @@ You can create an environment settings file anywhere you would like, but it is r
 require_once 'path/to/autoloader.php';
 
 Env::loadFromFile('/path/to/config.ini');
+```
+
+An average index file with routing and templating usually looks like this
+
+```php
+<?php
+
+use Pie\Pie;
+use Pie\Crust\Scope;
+use Pie\Crust\Env;
+use Pie\Modules\Route\Route;
+
+// Load the autoloader
+require_once 'piephp/autoloader.php';
+
+// Load the evironments configuration
+Env::loadFromFile('../config.ini');
+
+// Create the base app
+$app = Pie::module('MyWebApp', ['Route', 'Tpl']);
+
+// Create the apps configuration
+$app->config(function(Route $route){
+
+    // Define what to do for all routing requests
+    $route->always([
+        'baseTemplateUrl' => '/index.html', // Handles html pages
+                                            // html pages have a templateUrl in the route
+        'displayAs'       => 'json'         // Handles non html pages
+                                            // non html pages have a controller in the route
+    ]);
+
+    // Define each route
+    $route->when('/', [
+        'templateUrl' => '/views/home.html'
+    ]);
+});
+
+// Create a controller to handle the request
+$app->controller('home', function(Scope $scope){
+    $scope->header = 'Welcome';
+});
+```
+
+Pages usually have a template to go along with them. Here are the two pages
+
+**Base Template** `/index.html`
+
+```html
+<!doctype html>
+<html>
+    <head>
+        <title>My MyWebApp</title>
+    </head>
+    <body>
+        <!--
+            This view is where our route's template will show up.
+            Without the 'view' attribute we can't load a template.
+            The view attribute will only be utilized once.
+        -->
+        <div view></div>
+    </body>
+</html>
+```
+
+**View Template** `/views/home.html`
+
+```html
+<!--
+    Once this view loads, the template will execute the named
+    controller and we can then utilized the defined scopes.
+-->
+<div controller="home">
+    <h1 scope="header"></h1>
+</div>
 ```
