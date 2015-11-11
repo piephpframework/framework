@@ -84,6 +84,8 @@ require_once 'path/to/autoloader.php';
 Env::loadFromFile('/path/to/config.ini');
 ```
 
+### Basic Example with Templating and Routing
+
 An average index file with routing and templating usually looks like this
 
 ```php
