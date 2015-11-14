@@ -2,18 +2,21 @@
 
 namespace Pie;
 
-use Pie\Crust\RootScope;
+// Core
 use Pie\Crust\App;
-use Pie\Modules\Route\RouteParams;
-
+use Pie\Crust\Env;
+use Pie\Crust\RootScope;
 use Pie\Crust\Net\Request;
+
+// Modules
+use Pie\Modules\Route\RouteParams;
 
 class Pie{
 
     public static $root      = null;
     public static $rootScope = null;
 
-    public static $services  = false;
+    protected static $firstLoad  = false;
 
     /**
      *
@@ -23,11 +26,21 @@ class Pie{
      */
     public static function module($name, array $depend = []){
         $app = new App($name, $depend);
-        // Auto initiate common services once
-        if(self::$services === false){
+        // Configure the main app
+        if(self::$firstLoad !== true){
+            $docRoot = Pie::find('$server.DOCUMENT_ROOT');
+            // Attempt to load default config
+            if(is_file($docRoot . '/../config.ini')){
+                Env::loadFromFile($docRoot . '/../config.ini');
+            }
+
+            // Create the root scope
+            Pie::$rootScope = new RootScope();
+
+            // Initiate common services
             $app->service('request', new Request());
 
-            self::$services = true;
+            self::$firstLoad = true;
         }
         return $app;
     }
@@ -90,5 +103,3 @@ class Pie{
     }
 
 }
-
-Pie::$rootScope = new RootScope();
