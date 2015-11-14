@@ -5,7 +5,7 @@ namespace Pie\Modules\Tpl;
 use DOMElement;
 use DOMXPath;
 use DOMNode;
-use Pie\Crust\Library\Arrays\ArrayList;
+use Pie\Crust\Util\Arrays\ArrayList;
 
 class Element{
 

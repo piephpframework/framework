@@ -3,10 +3,11 @@
 namespace Pie\Modules\Http;
 
 use Exception;
-use Pie\Crust\Library\Arrays\ArrayList;
+use Pie\Crust\Service;
+use Pie\Crust\Util\Arrays\ArrayList;
 use Pie\Modules\Http\HttpResult;
 
-class Http{
+class Http extends Service{
 
     protected
             $handles = [];

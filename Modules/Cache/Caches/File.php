@@ -1,13 +1,16 @@
 <?php
 
-namespace Modules\Cache;
+namespace Pie\Modules\Cache\Caches;
 
-class File extends Cache{
+use Pie\Modules\Cache\Cache;
+use Pie\Modules\Cache\Interfaces\ICache;
 
-    private $filepath = '.';
+class File extends Cache implements ICache{
+
+    private $filepath;
 
     public function __construct(){
-        $this->filepath = Pie::find('$env.cache.filepath');
+        $this->filepath = Pie::find('$env.cache.fileroot');
     }
 
     public function isExpired($name, $ttl){
@@ -28,14 +31,16 @@ class File extends Cache{
             $content = json_encode($result);
             $file = $this->cachePath($name);
             file_put_contents($file, $content);
+            return true;
         }
+        return false;
     }
 
     public function get($name){
         $file = $this->cachePath($name);
         if(is_file($file)){
             $content = file_get_contents($file);
-            return json_decode();
+            return json_decode($content);
         }
         return '';
     }
@@ -43,8 +48,9 @@ class File extends Cache{
     public function delete($name){
         $file = $this->cachePath($name);
         if(is_file($file)){
-            unlink($file);
+            return unlink($file);
         }
+        return false;
     }
 
     protected function cachePath($name){

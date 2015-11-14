@@ -7,6 +7,10 @@ $_ENV = [
         'templates' => '.',
         'modules'   => '.'
     ],
+    'cache' => [
+        'default' => 'file',
+        'fileroot' => '.'
+    ],
     'session' => [
         'use' => 'yes'
     ]

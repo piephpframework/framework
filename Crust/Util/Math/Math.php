@@ -1,6 +1,6 @@
 <?php
 
-namespace Pie\Crust\Library\Math;
+namespace Pie\Crust\Util\Math;
 
 class Math extends Service{
 

@@ -6,10 +6,14 @@ use Pie\Crust\RootScope;
 use Pie\Crust\App;
 use Pie\Modules\Route\RouteParams;
 
+use Pie\Crust\Net\Request;
+
 class Pie{
 
     public static $root      = null;
     public static $rootScope = null;
+
+    public static $services  = false;
 
     /**
      *
@@ -18,7 +22,14 @@ class Pie{
      * @return App
      */
     public static function module($name, array $depend = []){
-        return new App($name, $depend);
+        $app = new App($name, $depend);
+        // Auto initiate common services once
+        if(self::$services === false){
+            $app->service('request', new Request());
+
+            self::$services = true;
+        }
+        return $app;
     }
 
     public static function find($path, $obj = null){

@@ -1,6 +1,6 @@
 <?php
 
-namespace Pie\Crust\Library\Net;
+namespace Pie\Crust\Net;
 
 use Pie\Crust\Service;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Pie\Crust\Library\Arrays;
+namespace Pie\Crust\Util\Arrays;
 
 use Exception;
 use Iterator;
