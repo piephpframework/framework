@@ -34,7 +34,7 @@ return call_user_func(function(){
     };
 
     $app->routeChange = function($value, $parent) use($route){
-        if(isset($route->getAlways()['displayAs']) || isset($value[0]['settings']['displayAs'])){
+        if(isset($route->getAlways()['displayAs']) || isset($value[0]['settings']['displayAs']) || isset($value[0]['settings']['controller'])){
             $controller = $value[0];
             if(
                 isset($controller['settings']['controller'])

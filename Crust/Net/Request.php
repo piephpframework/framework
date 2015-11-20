@@ -35,6 +35,14 @@ class Request extends Service{
     public function post(){
         return (object)$_POST;
     }
+    
+    /**
+     * Gets the post data
+     * @return array
+     */
+    public function request(){
+        return (object)$_REQUEST;
+    }
 
     /**
      * Gets the cookie data
