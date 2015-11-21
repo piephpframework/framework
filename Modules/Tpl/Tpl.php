@@ -303,8 +303,9 @@ class Tpl{
                 return $filter;
             }
         }
-        if($current->getParent() !== null){
-            return $this->findFilter($filterName, $current->parent);
+        $parent = $current->getParent();
+        if($parent !== null){
+            return $this->findFilter($filterName, $parent);
         }
         return null;
     }
@@ -351,7 +352,7 @@ class Tpl{
     public function getRealFile($value){
         $root = $this->getBase();
         if(is_array($value)){
-            $filename = $root . $value[0]['settings']['templateUrl'];
+            $filename = $root . $value['settings']['templateUrl'];
         }elseif(is_string($value)){
             $filename = $root . $value;
         }

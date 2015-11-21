@@ -7,7 +7,7 @@ use Pie\Modules\Route\Route;
 use Pie\Modules\Route\RouteParams;
 
 return call_user_func(function(){
-    $app = Pie::module('Route', []);
+    $app = Pie::module('Route');
 
     $route       = new Route();
     $routeParams = new RouteParams();
@@ -21,21 +21,19 @@ return call_user_func(function(){
 
     parse_str($app->query, $_GET);
 
-    $app->cleanup = function($parent) use($route){
-        $controller = $route->findRoute($this);
+    $app->listen('cleanup', function($parent) use ($route, $app){
+        $controller = $route->findRoute($app);
+        if(isset($controller['settings']['modules'])){
+            $parent->addDepndencies($controller['settings']['modules']);
+        }
         if($controller !== null){
             $parent->exec($controller);
         }
-        $event        = new Event();
-        $event->name  = 'routeChange';
-        $event->value = [$controller];
+        $app->broadcast('routeComplete', [$controller, $parent]);
+    });
 
-        return $event;
-    };
-
-    $app->routeChange = function($value, $parent) use($route){
-        if(isset($route->getAlways()['displayAs']) || isset($value[0]['settings']['displayAs']) || isset($value[0]['settings']['controller'])){
-            $controller = $value[0];
+    $app->listen('routeComplete', function($controller, $parent) use ($route){
+        if(isset($route->getAlways()['displayAs']) || isset($controller['settings']['displayAs']) || isset($controller['settings']['controller'])){
             if(
                 isset($controller['settings']['controller'])
                 && is_string($controller['settings']['controller'])
@@ -57,7 +55,7 @@ return call_user_func(function(){
                 $route->executeController($parent, $controller);
             }
         }
-    };
+    });
 
     return $app;
 });

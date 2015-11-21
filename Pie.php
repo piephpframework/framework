@@ -26,7 +26,7 @@ class Pie{
      * @return App
      */
     public static function module($name, array $depend = []){
-        $app = new App($name, $depend);
+        $app = new App($name);
         // Configure the main app
         if(self::$firstLoad !== true){
             $docRoot = Pie::find('$server.DOCUMENT_ROOT');
@@ -41,9 +41,12 @@ class Pie{
             // Initiate common services
             $app->service('request', new Request());
             $app->service('validate', new Validate());
+            $app->service('env', new Env());
+            $app->service('rootScope', Pie::$rootScope);
 
             self::$firstLoad = true;
         }
+        $app->addDepndencies($depend);
         return $app;
     }
 

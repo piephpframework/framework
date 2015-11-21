@@ -23,11 +23,18 @@ class App{
             $filters     = [],
             $parent      = null;
 
-    public function __construct($name, array $dependencies = []){
+    public function __construct($name){
         $this->name = $name;
-        $apps       = [];
+    }
 
+    public function addDepndencies(array $dependencies = []){
+        $this->loadDependencies($dependencies);
+    }
+
+    public function loadDependencies($dependencies){
+        $apps = [];
         foreach($dependencies as $dependName){
+            // Load Pie.php modules
             $modules = glob(__DIR__ . '/../Modules/*', GLOB_ONLYDIR);
             foreach($modules as $module){
                 $moduleName = basename($module);
@@ -36,6 +43,8 @@ class App{
                     $apps[$dependName] = $app;
                 }
             }
+
+            // Load Users modules
             $base        = isset($_ENV['root']['modules']) ? $_ENV['root']['modules'] : '.';
             $modulesBase = strpos($base, '/') === 0 ? $base : $_SERVER['DOCUMENT_ROOT'] . '/' . $base;
             $userModules = glob($modulesBase . '/*', GLOB_ONLYDIR);
@@ -47,7 +56,7 @@ class App{
                 }
             }
         }
-        $this->apps = $apps;
+        $this->apps = array_merge($this->apps, $apps);
     }
 
     protected function loadModule($dependName, $moduleName, $module){
@@ -55,8 +64,8 @@ class App{
             /* @var $app App */
             $app = require_once $module . '/module.php';
 
-            $app->service('rootScope', Pie::$rootScope);
-            $app->service('env', new Env());
+            // $app->service('rootScope', Pie::$rootScope);
+            // $app->service('env', new Env());
             $app->setParent($this);
 
             return $app;
@@ -72,11 +81,9 @@ class App{
         }
 
         // run additional events
-        foreach($this->apps as $name => $dep){
-            $result = $dep->cleanup($this);
-            if($result instanceof Event){
-                $this->fireEvent($result);
-            }
+        if($this->getParent() == null){
+            // Cleanup final code call
+            $this->broadcast('cleanup', [$this]);
         }
     }
 
@@ -124,7 +131,7 @@ class App{
             $find = Pie::findRecursive($find, $scope);
             return $find !== '' ? $find : $matches[0];
         }, $eval);
-        
+
         if(empty($toEval)){
             return false;
         }
@@ -142,7 +149,10 @@ class App{
      */
     public function listen($name, callable $callback){
         if($callback instanceof Closure){
-            $this->events[$name][] = $callback;
+            $this->events[$name][] = [
+                'event'  => $callback,
+                'called' => false
+            ];
         }
         return $this;
     }
@@ -155,18 +165,22 @@ class App{
      */
     public function broadcast($name, array $args = [], &$count = 0){
         // Run all events within the current module
-        if(isset($this->events[$name])){
-            foreach($this->events[$name] as $event){
-                if($event instanceof Closure){
-                    $evt = new ReflectionFunction($event);
-                    $argCount = count($args);
-                    if($argCount >= $evt->getNumberOfRequiredParameters() && $argCount <= $evt->getNumberOfParameters()){
-                        call_user_func_array($event, $args);
-                        $count++;
+        foreach($this->apps as $app){
+            if(isset($app->events[$name])){
+                foreach($app->events[$name] as $event){
+                    if($event['event'] instanceof Closure){
+                        $evt = new ReflectionFunction($event['event']);
+                        $argCount = count($args);
+                        if($argCount >= $evt->getNumberOfRequiredParameters() && $argCount <= $evt->getNumberOfParameters()){
+                            call_user_func_array($event['event'], $args);
+                            $event['called'] = true;
+                            $count++;
+                        }
                     }
                 }
             }
         }
+
         // Move to the parent and run those listeners
         $parent = $this->getParent();
         if($parent !== null){
@@ -184,6 +198,10 @@ class App{
             if(isset($dep->{$event->name}) && is_callable($dep->{$event->name})){
                 $call = $dep->{$event->name}->bindTo($dep, $dep);
                 call_user_func_array($call, [$event->value, $this]);
+            }
+            $parent = $dep->getParent();
+            if($parent !== null){
+                $parent->fireEvent($event);
             }
         }
     }

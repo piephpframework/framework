@@ -8,23 +8,23 @@ use Pie\Modules\Tpl\Element;
 use Pie\Modules\Tpl\TplAttr;
 
 return call_user_func(function(){
-    $app = Pie::module('Tpl', []);
+    $app = Pie::module('Tpl');
 
-    $tpl = new Tpl();
-
-    $app->routeChange = function ($value, $parent) use ($tpl){
+    $app->listen('routeComplete', function($controller, $parent){
+        $tpl = new Tpl();
+        // $app->routeChange = function ($value, $parent) use ($tpl){
         $tpl->setParent($parent);
 
-        if(isset($value[0]['settings']['templateUrl'])){
-            $filename = $tpl->getRealFile($value);
+        if(isset($controller['settings']['templateUrl'])){
+            $filename = $tpl->getRealFile($controller);
 
             $basefile = '';
-            if(isset($value[0]['globalSettings']['baseTemplateUrl'])){
-                $basefile = $tpl->getBase() . $value[0]['globalSettings']['baseTemplateUrl'];
+            if(isset($controller['globalSettings']['baseTemplateUrl'])){
+                $basefile = $tpl->getBase() . $controller['globalSettings']['baseTemplateUrl'];
             }
-            if(isset($value[0]['settings']['baseTemplateUrl'])){
-                if(!empty($value[0]['settings']['baseTemplateUrl'])){
-                    $basefile = $tpl->getBase() . $value[0]['settings']['baseTemplateUrl'];
+            if(isset($controller['settings']['baseTemplateUrl'])){
+                if(!empty($controller['settings']['baseTemplateUrl'])){
+                    $basefile = $tpl->getBase() . $controller['settings']['baseTemplateUrl'];
                 }else{
                     $basefile = null;
                 }
@@ -73,14 +73,14 @@ return call_user_func(function(){
         }
 
         $doctype = '';
-        if(isset($value[0]['settings']['doctype'])){
-            $doctype = $value[0]['settings']['doctype'];
+        if(isset($controller['settings']['doctype'])){
+            $doctype = $controller['settings']['doctype'];
             $doctype = $doctype === null ? '' : $doctype;
         }else{
             $doctype = isset($_ENV['tpl']['doctype']) ? $_ENV['tpl']['doctype'] : '<!doctype html>';
         }
         echo "$doctype\n" . $newDoc->saveHTML();
-    };
+    });
 
     /**
      * Tells Pie the name of the controller to use for this template.
