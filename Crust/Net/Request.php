@@ -6,6 +6,18 @@ use Pie\Crust\Service;
 
 class Request extends Service{
 
+    public function headers(){
+        $headers = [];
+        foreach ($_SERVER as $k => $v){
+            if (substr($k, 0, 5) == "HTTP_"){
+                $k = str_replace('_', ' ', substr($k, 5));
+                $k = str_replace(' ', '-', ucwords(strtolower($k)));
+                $headers[$k] = $v;
+            }
+        }
+        return $headers;
+    }
+
     /**
      * Gets the body of the request.<br>
      * If the request is in a json format then the json will be decoded
@@ -35,7 +47,7 @@ class Request extends Service{
     public function post(){
         return (object)$_POST;
     }
-    
+
     /**
      * Gets the post data
      * @return array

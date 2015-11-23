@@ -73,6 +73,29 @@ class App{
         return null;
     }
 
+    public function get($name){
+        foreach($this->apps as $app_name => $app){
+            if($app_name == $name){
+                return $app;
+            }
+        }
+        $parent = $this->getParent();
+        if($parent !== null){
+            return $parent->get($name);
+        }
+        $modules = glob(__DIR__ . '/../Modules/*', GLOB_ONLYDIR);
+        foreach($modules as $module){
+            $moduleName = basename($module);
+            $app = $this->loadModule($name, $moduleName, $module);
+            if($app !== null){
+                if($app instanceof App){
+                    $ths->apps[$name] = $app;
+                }
+                return $app;
+            }
+        }
+    }
+
     public function __destruct(){
         // Run the config
         if($this->config instanceof Closure){
@@ -81,7 +104,7 @@ class App{
         }
 
         // run additional events
-        if($this->getParent() == null){
+        if($this->getParent() === null){
             // Cleanup final code call
             $this->broadcast('cleanup', [$this]);
         }
@@ -149,6 +172,7 @@ class App{
      */
     public function listen($name, callable $callback){
         if($callback instanceof Closure){
+            $callback = $callback->bindTo($this, $this);
             $this->events[$name][] = [
                 'event'  => $callback,
                 'called' => false
@@ -185,6 +209,20 @@ class App{
         $parent = $this->getParent();
         if($parent !== null){
             $parent->broadcast($name, $args, $count);
+        }else{
+            if(isset($this->events[$name])){
+                foreach($this->events[$name] as $event){
+                    if($event['event'] instanceof Closure){
+                        $evt = new ReflectionFunction($event['event']);
+                        $argCount = count($args);
+                        if($argCount >= $evt->getNumberOfRequiredParameters() && $argCount <= $evt->getNumberOfParameters()){
+                            call_user_func_array($event['event'], $args);
+                            $event['called'] = true;
+                            $count++;
+                        }
+                    }
+                }
+            }
         }
         return $this;
     }

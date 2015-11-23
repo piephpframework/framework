@@ -223,9 +223,14 @@ class Route{
      */
     public function pathToArray($path){
         $items = explode('/', ltrim($path, '/'));
-        return array_map(function($value){
+        $items = array_map(function($value){
             return explode('?', $value, 2)[0];
         }, $items);
+        $items = array_filter($items);
+        if(count($items == 0)){
+            $items[] = "";
+        }
+        return $items;
     }
 
     public function queryString($path){

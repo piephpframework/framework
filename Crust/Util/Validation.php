@@ -6,16 +6,13 @@ use Pie\Pie;
 use Pie\Crust\Service;
 use Pie\Crust\Net\Request;
 
-class Validate extends Service{
+class Validation extends Service{
 
-    protected $item, $validations;
+    protected $validations;
 
-    public function test($item, array $validations, &$errors = []){
-        $this->item = $item;
+    public function test(array $validations, &$errors = []){
         $this->validations = $validations;
-        if($this->item instanceof Request){
-            return $this->_test($errors);
-        }
+        return $this->_test($errors);
     }
 
     protected function _test(&$errors){

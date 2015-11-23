@@ -7,7 +7,7 @@ use Pie\Crust\App;
 use Pie\Crust\Env;
 use Pie\Crust\RootScope;
 use Pie\Crust\Net\Request;
-use Pie\Crust\Util\Validate;
+use Pie\Crust\Util\Validation;
 
 // Modules
 use Pie\Modules\Route\RouteParams;
@@ -40,7 +40,7 @@ class Pie{
 
             // Initiate common services
             $app->service('request', new Request());
-            $app->service('validate', new Validate());
+            $app->service('validation', new Validation());
             $app->service('env', new Env());
             $app->service('rootScope', Pie::$rootScope);
 
