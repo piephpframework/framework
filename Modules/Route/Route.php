@@ -1,241 +1,66 @@
 <?php
 
-namespace Pie\Modules\Route;
+namespace Modules\Route;
 
-use Exception;
-use Pie\Crust\App;
-use Pie\Crust\Controller;
-use SimpleXMLElement;
+use Collections\ArrayList;
 
-class Route{
+class Route {
 
-    protected $routes = array();
-    protected $always = array();
-    protected $strict = true;
+    protected $paths;
+    protected $prefix = '';
 
-    /**
-     * Always set the following settings for each call
-     * @param array $settings
-     * @return Route
-     */
-    public function always(array $settings = null){
-        $this->always = $settings;
+    public function __construct(){
+        $this->paths = new ArrayList(Path::class);
+    }
+
+    public function getPaths(){
+        return $this->paths;
+    }
+
+    public function group(array $options, callable $callback){
+        $this->prefix($options);
+        call_user_func_array($callback, [$this]);
+        $this->dePrefix();
+    }
+
+    public function when($path, $controller, $requestType = RequestType::All){
+        $routePath = preg_replace('/\/\/+/', '/', '/' . $this->prefix . '/' . $path);
+        $path = new Path($routePath, $controller, $requestType);
+        $this->paths->add($path);
         return $this;
     }
 
-    /**
-     * Sets a new route to be tested
-     * @param string $path The path of the route
-     * @param array $settings The settings fo the route
-     * @return Route
-     */
-    public function when($path, $settings){
-        if(!is_array($settings) && !($settings instanceof Controller)){
-            throw new Exception('$settings must be either an array or instance of Controller');
+    public function get($path, $controller){
+        $this->when($path, $controller, RequestType::Get);
+    }
+
+    public function post($path, $controller){
+        $this->when($path, $controller, RequestType::Post);
+    }
+
+    public function put($path, $controller){
+        $this->when($path, $controller, RequestType::Put);
+    }
+
+    public function patch($path, $controller){
+        $this->when($path, $controller, RequestType::Patch);
+    }
+
+    public function delete($path, $controller){
+        $this->when($path, $controller, RequestType::Delete);
+    }
+
+    protected function prefix($options){
+        if(isset($options['prefix'])){
+            $this->prefix .= '/' . trim($options['prefix'], '/');
         }
-        $paths = !is_array($path) ? [$path] : $path;
-        foreach($paths as $path){
-            $this->routes[] = array(
-                "path"     => rtrim($path, '/'),
-                "settings" => $settings
-            );
-        }
+    }
+
+    protected function dePrefix(){
+        $path = explode('/', $this->prefix);
+        array_pop($path);
+        $this->prefix = '/' . implode($path);
         return $this;
-    }
-
-    /**
-     * If no when statement gets executed default to this
-     * @param array $settings
-     * @return Route
-     */
-    public function otherwise(array $settings){
-        $this->routes[] = array(
-            "fallback" => true,
-            "settings" => $settings
-        );
-        return $this;
-    }
-
-    /**
-     * Gets a list of all the setup routes
-     * @return type
-     */
-    public function getRoutes(){
-        return $this->routes;
-    }
-
-    /**
-     * Gets a list of the always settings
-     * @return type
-     */
-    public function getAlways(){
-        return $this->always;
-    }
-
-    /**
-     * Turns on/off strict mode
-     * @param type $isStrict
-     */
-    public function setStrict($isStrict){
-        $this->strict = (bool)$isStrict;
-        return $this;
-    }
-
-    /**
-     * Gets the current strictness
-     * @return type
-     */
-    public function getStrict(){
-        return $this->strict;
-    }
-
-    public function findRoute(App $app){
-        $services    = $app->getServices();
-        $route       = $services['route'];
-        $routeParams = $services['routeParams'];
-        $path        = $app->path;
-        $routes      = $route->getRoutes();
-        // Foreach user defined route
-        foreach($routes as $r){
-            $controller = null;
-            $settings   = null;
-            // Route::when
-            if(isset($r['path'])){
-                $route      = $this->pathToArray($r['path']);
-                $route_good = false;
-                // If the path lengths match, test them
-                // Otherwise it isn't worth testing
-                if(count($path) == count($route)){
-                    foreach($route as $index => $item){
-                        if(!isset($path[$index])){
-                            $route_good = false;
-                            break;
-                        }
-                        $good = $this->_comparePathItems($path[$index], $route[$index], $app);
-                        if(!$good){
-                            $route_good = false;
-                            break;
-                        }
-                        if($r['settings'] instanceof Controller){
-                            $controller = $r['settings'];
-                        }
-//                        elseif(isset($r['settings']['controller'])){
-//                            $controller = $r['settings']['controller'];
-//                        }
-                        $settings = $r['settings'];
-
-                        if($good){
-                            $route_good = true;
-                        }
-                    }
-                    if(!$route_good){
-                        $routeParams = [];
-                    }
-                }else{
-                    $controller = null;
-                    $settings   = null;
-                }
-            }
-            if($route_good){
-                return [
-                    'controller'     => $controller,
-                    'settings'       => $settings,
-                    'globalSettings' => $this->getAlways()
-                ];
-            }
-        }
-        // Our route was not found, use our fallback
-        // Route::otherwise
-        foreach($routes as $route){
-            if(isset($route['fallback'])){
-
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Compares the URL path item to the user defined path item
-     * @param string $item1 The URL path item
-     * @param string $item2 The User defined path item
-     * @return boolean
-     */
-    function _comparePathItems($item1, $item2, App $app){
-        $matches = array();
-
-        // Test if item is a parameter
-        if(preg_match('/^(:|@|#).+?/', $item2, $matches) && !empty($item1)){
-            if($matches[1] == '@' && !ctype_alpha($item1)){
-                return false;
-            }
-            if($matches[1] == '#' && !ctype_digit($item1)){
-                return false;
-            }
-            $val     = ltrim($item2, ':@#');
-            $classes = $app->getServices();
-
-            $classes['routeParams']->$val = $item1;
-            return true;
-        }
-
-        // Test if the two items match
-        if($app->getServices()['route']->getStrict()){
-            return $item1 === $item2;
-        }else{
-            return strtolower($item1) == strtolower($item2);
-        }
-        return false;
-    }
-
-    public function executeController(App $parent, Controller $controller){
-        $result = $parent->execController($controller);
-
-        $displayAs = null;
-        if(isset($controller->settings['displayAs'])){
-            $displayAs = isset($controller->settings['displayAs']);
-        }elseif(isset($this->getAlways()['displayAs'])){
-            $displayAs = $this->getAlways()['displayAs'];
-        }
-
-        if($displayAs !== null){
-            switch($displayAs){
-                case 'json':
-                    header('Content-Type: application/json');
-                    echo json_encode($result);
-                    break;
-                case 'xml':
-                    $xml = new SimpleXMLElement('<root/>');
-                    array_walk_recursive($result, array($xml, 'addChild'));
-                    header('Content-Type: application/xml');
-                    echo $xml->asXML();
-                    break;
-                default:
-                    echo $result;
-                    break;
-            }
-        }
-    }
-
-    /**
-     * Converts a strng path to an array removing the prefixed '/'
-     * @param string $path
-     * @return string
-     */
-    public function pathToArray($path){
-        $items = explode('/', ltrim($path, '/'));
-        $items = array_map(function($value){
-            return explode('?', $value, 2)[0];
-        }, $items);
-        $items = array_filter($items);
-        if(count($items == 0)){
-            $items[] = "";
-        }
-        return $items;
-    }
-
-    public function queryString($path){
-        $pu = parse_url($path);
-        return isset($pu['query']) ? $pu['query'] : '';
     }
 
 }

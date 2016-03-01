@@ -35,6 +35,12 @@ class Element{
         return $this;
     }
 
+    public function append($value){
+        $newNode = $this->newNode($value);
+        $this->node = $this->element->appendChild($newNode);
+        return $this;
+    }
+
     public function find($string){
         $xpath = new DOMXPath($this->element->ownerDocument);
         $nodes = new ArrayList(DOMNode::class);
@@ -49,6 +55,8 @@ class Element{
     protected function newNode($value){
         if(is_string($value)){
             return $this->element->ownerDocument->createTextNode($value);
+        }else if($value instanceof DOMElement){
+            return $this->element->ownerDocument->importNode($value, true);
         }
     }
 
