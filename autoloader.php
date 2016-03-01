@@ -29,7 +29,7 @@ spl_autoload_register(function($class){
     }
 
     // Look starting from the current directory
-    $filename = __DIR__ . '/' . str_replace('\\', '/', $class) . '.php';
+    $filename = __DIR__ . '/src/' . str_replace('\\', '/', $class) . '.php';
     if(is_file($filename)){
         require_once $filename;
         return;

@@ -25,13 +25,6 @@ class ArrayList extends Collection {
         }
     }
 
-    public function __get($name){
-        switch($name){
-            case 'count':
-                return count($this->items);
-        }
-    }
-
     /**
      * Adds an object instance of the defined type
      * @param mixed $object

@@ -25,13 +25,12 @@ class Dictionary extends Collection {
             }else{
                 $this->items[$index] = ['key' => $key, 'value' => $value];
             }
-        }else{
-            if(!($key instanceof $this->keyType)){
-                throw new Exception(get_class($key) . ' is not an instances of ' . $this->keyType);
-            }
-            if(!($value instanceof $this->valueType)){
-                throw new Exception(get_class($value) . ' is not an instances of ' . $this->valueType);
-            }
+        }
+        if(!($key instanceof $this->keyType)){
+            throw new Exception(get_class($key) . ' is not an instances of ' . $this->keyType);
+        }
+        if(!($value instanceof $this->valueType)){
+            throw new Exception(get_class($value) . ' is not an instances of ' . $this->valueType);
         }
         return $this;
     }
