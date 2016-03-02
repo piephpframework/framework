@@ -16,9 +16,7 @@ abstract class Collection extends Object implements Iterator {
             case 'length':
                 return $this->length();
         }
-        parent::__get($name);
     }
-
 
     public function length(){
         if($this->items instanceof ArrayList){
@@ -67,7 +65,6 @@ abstract class Collection extends Object implements Iterator {
     public function valid() {
         return isset($this->items[$this->position]);
     }
-
 
     protected function &arrayRef(){
         return $this->items;
