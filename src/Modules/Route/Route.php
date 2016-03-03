@@ -3,6 +3,7 @@
 namespace Modules\Route;
 
 use Collections\ArrayList;
+use Application\View;
 
 class Route {
 
@@ -20,7 +21,17 @@ class Route {
     public function __destruct(){
         $foundRoute = $this->findRoute();
         if($foundRoute !== null){
-            $this->runRoute($foundRoute);
+            $result = $this->runRoute($foundRoute);
+            $this->handleResult($result);
+        }
+    }
+
+    public function handleResult($response){
+        if($response instanceof View){
+            $result = $response->getView();
+            if(is_string($result)){
+                echo $result;
+            }
         }
     }
 
@@ -40,7 +51,8 @@ class Route {
     public function run($string){
         foreach ($this->paths as $path) {
             if($path->name == $string){
-                $this->runRoute($path);
+                $result = $this->runRoute($path);
+                $this->handleResult($result);
             }
         }
         return $this;
@@ -153,9 +165,9 @@ class Route {
     protected function runRoute(Path $path){
         if(!$this->routeRan){
             $this->routeRan = true;
-            $path->runController();
+            return $path->runController();
         }
-        return $this;
+        return null;
     }
 
     /**
@@ -163,6 +175,9 @@ class Route {
      * @return null|Path
      */
     protected function findRoute(){
+        if(!isset($_SERVER['REQUEST_URI'])){
+            return null;
+        }
         $route = array_unique(explode('/', $_SERVER['REQUEST_URI']));
         $method = ucfirst(strtolower($_SERVER['REQUEST_METHOD']));
         $foundPath = null;
@@ -175,7 +190,7 @@ class Route {
                     break;
                 }
                 $routeDir = $route[$key];
-                if($routeDir == $testDir && $method == $tpath->method){
+                if($routeDir == $testDir && ($method == $tpath->method || $tpath->method == RequestType::All)){
                     $validPath = true;
                     continue;
                 }

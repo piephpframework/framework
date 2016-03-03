@@ -2,7 +2,7 @@
 
 namespace Database;
 
-use App\Object;
+use Application\Object;
 use Collections\Collection;
 
 class Model extends Collection {

@@ -3,7 +3,7 @@
 namespace Collections;
 
 use Exception;
-use App\Object;
+use Application\Object;
 use Database\Model;
 use Collections\Processors\ArrayListProcessor;
 use Collections\Processors\MysqlProcessor;

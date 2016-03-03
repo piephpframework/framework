@@ -2,7 +2,7 @@
 
 namespace Collections\Processors;
 
-use App\Object;
+use Application\Object;
 use Collections\Collection;
 use Collections\ArrayList;
 

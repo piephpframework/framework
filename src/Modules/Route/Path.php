@@ -2,7 +2,7 @@
 
 namespace Modules\Route;
 
-use App\Controller;
+use Application\ApplicationController;
 
 class Path {
 
@@ -29,7 +29,7 @@ class Path {
      */
     public function __construct($path, $controller, $requestType){
         $this->path = $path;
-        $this->controller = new Controller($controller);
+        $this->controller = new ApplicationController($controller);
         $this->requestType = $requestType;
     }
 
@@ -38,8 +38,7 @@ class Path {
      * @return Path
      */
     public function runController(){
-        $this->controller->run();
-        return $this;
+        return $this->controller->run();
     }
 
     /**

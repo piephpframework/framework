@@ -3,7 +3,7 @@
 namespace Database;
 
 use PDO;
-use App\Object;
+use Application\Object;
 
 class Db extends Object {
 

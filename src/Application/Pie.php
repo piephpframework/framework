@@ -1,8 +1,8 @@
 <?php
 
-namespace App;
+namespace Application;
 
-use App\App;
+use Application\App;
 
 class Pie extends Object {
 

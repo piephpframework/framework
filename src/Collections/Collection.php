@@ -4,7 +4,7 @@ namespace Collections;
 
 use Iterator;
 use stdClass;
-use App\Object;
+use Application\Object;
 
 abstract class Collection extends Object implements Iterator {
 

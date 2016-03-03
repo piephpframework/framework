@@ -16,6 +16,8 @@ $_ENV = [
     ]
 ];
 
+require_once __DIR__ . '/src/Application/Helper/functions.php';
+
 spl_autoload_register(function($class){
     $class      = preg_replace('/^Pie\\\/', '', $class);
     $base       = isset($_ENV['root']['source']) ? $_ENV['root']['source'] : '.';
@@ -36,7 +38,7 @@ spl_autoload_register(function($class){
     }
 
     // Look starting from the document root
-    $filename = $_SERVER['DOCUMENT_ROOT'] . '/' . str_replace('\\', '/', $class) . '.php';
+    $filename = $_SERVER['DOCUMENT_ROOT'] . '/../' . str_replace('\\', '/', $class) . '.php';
     if(is_file($filename)){
         require_once $filename;
         return;
