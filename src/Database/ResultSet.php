@@ -3,22 +3,31 @@
 namespace Database;
 
 use App\Object;
+use Collections\Collection;
+use Collections\ArrayList;
+use Database\Row;
 
-class ResultSet {
+class ResultSet extends Collection {
 
-    protected $item = null;
+    public function __construct(){
+        $this->items = new ArrayList(Row::class);
+    }
 
-    public function __construct($item){
-        $this->item = $item;
+    public function add(Row $row){
+        $this->items->add($row);
     }
 
     public function __get($name){
-        if(is_array($this->item) && isset($this->item[$name])){
-            return $this->item[$name];
-        }elseif(is_object($this->item) && isset($this->item->$name)){
-            return $this->item->$name;
+        if(is_array($this->items) && isset($this->items[$name])){
+            return $this->items[$name];
+        }elseif(is_object($this->items) && isset($this->items->$name)){
+            return $this->items->$name;
         }
         return null;
+    }
+
+    public function __set($key, $value){
+        $this->items->$key = $value;
     }
 
 }

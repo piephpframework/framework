@@ -41,7 +41,7 @@ class ArrayList extends Collection {
             }else{
                 $value = gettype($object);
             }
-            throw new Exception($value . ' is not an instances of ' . $this->valueType);
+            throw new Exception($value . ' is not an instance of ' . $this->valueType);
         }
         return $this;
     }

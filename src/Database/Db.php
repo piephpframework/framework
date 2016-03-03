@@ -27,6 +27,10 @@ class Db extends Object {
         return $this->stmt->fetchAll(PDO::FETCH_CLASS);
     }
 
+    public static function tick($string){
+        return '`' . implode('`.`', explode('.', $string)) . '`';
+    }
+
     protected function _bind($query, $params){
         if(strpos($query, "?")){
             array_unshift($params, null);

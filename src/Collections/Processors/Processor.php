@@ -1,10 +1,10 @@
 <?php
 
-namespace Collections\Parsers;
+namespace Collections\Processors;
 
 use Collections\Collection;
 
-class Parser extends Collection {
+class Processor extends Collection {
 
     protected $select = [];
     protected $value = '', $asValue = '';

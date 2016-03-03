@@ -27,6 +27,20 @@ abstract class Collection extends Object implements Iterator {
         return 0;
     }
 
+    public function get($offset = 0){
+        if(is_array($this->items)){
+            return $this->items[$offset];
+        }elseif($this->items instanceof ArrayList){
+            return $this->items;
+        }
+        return $this;
+    }
+
+    public function setItems($items){
+        $this->items = $items;
+        return $this;
+    }
+
     public function getKeyType(){
         return $this->keyType;
     }

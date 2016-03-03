@@ -1,12 +1,12 @@
 <?php
 
-namespace Collections\Parsers;
+namespace Collections\Processors;
 
 use App\Object;
 use Collections\Collection;
 use Collections\ArrayList;
 
-class ArrayListParser extends Parser implements IParser {
+class ArrayListProcessor extends Processor implements IParser {
 
     public function __construct(Collection $items){
         $this->items = $items;
