@@ -14,6 +14,10 @@ class ArrayListProcessor extends Processor implements IParser {
         $this->startTime = microtime(true);
     }
 
+    /**
+     * Processes the Collection search
+     * @return void
+     */
     public function process(){
         $this->where();
         $this->order();
@@ -30,6 +34,10 @@ class ArrayListProcessor extends Processor implements IParser {
         $this->setMeta($meta);
     }
 
+    /**
+     * Filters the items in the current list and all union lists based on the where statements to make a new list
+     * @return void
+     */
     protected function where(){
         if(count($this->where) == 0 && count($this->in) == 0){
             $this->items->set($this->items->toArray());
@@ -69,6 +77,11 @@ class ArrayListProcessor extends Processor implements IParser {
         $this->items->set($tmpList);
     }
 
+    /**
+     * Tests the where statements
+     * @param mixed $itemValue The Object to test
+     * @return bool Whether or not the item is insertable
+     */
     private function _whereTest($itemValue){
         $insertable = true;
         foreach($this->where as $whereValue){
@@ -86,6 +99,11 @@ class ArrayListProcessor extends Processor implements IParser {
         return $insertable;
     }
 
+    /**
+     * Tests if the item is in the array list
+     * @param mixed $itemValue The Object to test
+     * @return bool Whether or not the item is insertable
+     */
     private function _inTest($itemValue){
         $insertable = true;
         foreach($this->in as $inValue){
@@ -102,6 +120,10 @@ class ArrayListProcessor extends Processor implements IParser {
         return $insertable;
     }
 
+    /**
+     * Orders the items in the list
+     * @return void
+     */
     protected function order(){
         if(count($this->order) == 0){
             return;
@@ -123,6 +145,10 @@ class ArrayListProcessor extends Processor implements IParser {
         }
     }
 
+    /**
+     * Selects the keys from each object
+     * @return void
+     */
     protected function select(){
         if(!is_array($this->select)){
             return $this->items;
@@ -154,6 +180,10 @@ class ArrayListProcessor extends Processor implements IParser {
         }
     }
 
+    /**
+     * Limits the number of items to return
+     * @return void
+     */
     protected function limit(){
         if($this->limit === null || $this->limit < $this->offset){
             return;
@@ -168,6 +198,13 @@ class ArrayListProcessor extends Processor implements IParser {
         $this->items->set($newList);
     }
 
+    /**
+     * Compares items
+     * @param mixed $val1 The first value in the comparison
+     * @param mixed $val2 The second value in the comparison
+     * @param string $comp The comparison operator
+     * @return bool Whether or not the comparison passed or failed
+     */
     private function _compare($val1, $val2, $comp){
         switch ($comp) {
             case '=':

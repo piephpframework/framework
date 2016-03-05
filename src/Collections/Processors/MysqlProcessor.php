@@ -23,14 +23,21 @@ class MysqlProcessor extends Processor implements IParser {
         $this->model = $model;
     }
 
+    /**
+     * Processes the Collection search
+     * @return void
+     */
     public function process(){
         $this->where();
         $this->order();
         $this->limit();
         $this->select();
-        $this->setObjectMeta();
     }
 
+    /**
+     * Builds the mysql where clause
+     * @return void
+     */
     protected function where(){
         $where = [];
         foreach($this->where as $whereValue){
@@ -53,6 +60,10 @@ class MysqlProcessor extends Processor implements IParser {
         }
     }
 
+    /**
+     * Builds the mysql order clause
+     * @return void
+     */
     protected function order(){
         $orders = [];
         foreach ($this->order as $orderValue) {
@@ -68,6 +79,11 @@ class MysqlProcessor extends Processor implements IParser {
         }
     }
 
+
+    /**
+     * Builds the mysql select clause
+     * @return void
+     */
     protected function select(){
         $columns = '*';
         if(count($this->select) > 0){
@@ -92,14 +108,21 @@ class MysqlProcessor extends Processor implements IParser {
         $this->addAttributes();
     }
 
+
+    /**
+     * Builds the mysql limit clause
+     * @return void
+     */
     protected function limit(){
         if($this->limit !== null){
             $this->finalLimit = ' limit ' . (int)$this->offset . ', ' . (int)$this->limit;
         }
     }
 
-    protected function setObjectMeta(){}
-
+    /**
+     * Adds the extra attributes that get appended based on the Model
+     * @return void
+     */
     protected function addAttributes(){
         foreach ($this->items as $row) {
             foreach ($this->model->append as $append) {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Route;
+namespace Route;
 
 use Collections\ArrayList;
 use Application\View;
@@ -26,6 +26,11 @@ class Route {
         }
     }
 
+    /**
+     * Handles the result of the route request
+     * @param mixed $response The response of the controller
+     * @return void
+     */
     public function handleResult($response){
         if($response instanceof View){
             $result = $response->getView();

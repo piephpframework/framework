@@ -10,6 +10,9 @@ class View {
         $this->viewName = $view_name;
     }
 
+    /**
+     * Get the view
+     */
     public function getView(){
         return file_get_contents($_SERVER['DOCUMENT_ROOT'] . '/../App/Views/' . $this->viewName . '.html');
     }

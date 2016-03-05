@@ -13,6 +13,11 @@ class ResultSet extends Collection {
         $this->items = new ArrayList(Row::class);
     }
 
+    /**
+     * The row to be added to the result set
+     * @param Row $row The row that will be added
+     * @return void
+     */
     public function add(Row $row){
         $this->items->add($row);
     }

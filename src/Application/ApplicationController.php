@@ -2,8 +2,6 @@
 
 namespace Application;
 
-
-
 class ApplicationController {
 
     protected $controller = null;
@@ -14,7 +12,7 @@ class ApplicationController {
 
     /**
      * Runs the current controller
-     * @return Controller
+     * @return mixed Returns the response from the executed controller
      */
     public function run(){
         $response = null;
@@ -25,6 +23,8 @@ class ApplicationController {
             $class = 'App\\Controllers\\' . $path;
             $init = new $class();
             $response = $init->$method();
+        }elseif($this->controller instanceof View){
+            $response = $this->controller;
         }
         return $response;
     }

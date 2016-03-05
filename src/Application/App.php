@@ -2,8 +2,8 @@
 
 namespace Application;
 
-use Modules\Route\Route;
-use Modules\Console\Console;
+use Route\Route;
+use Console\Console;
 
 class App extends Object {
 
@@ -16,12 +16,24 @@ class App extends Object {
         $this->init();
     }
 
+    /**
+     * Creates a web handler to handle web requests
+     * @param callable $callback A callable function to initiate routes
+     * @return App Returns the current application
+     */
     public function web(callable $callback){
         call_user_func_array($callback, [($this->route = new Route())]);
+        return $this;
     }
 
+    /**
+     * Creates a console handler to handle console scripts
+     * @param callable $callback A callable function to initiate colsole actions
+     * @return App Returns the current application
+     */
     public function console(callback $callback){
         call_user_func_array($callback, [($this->console = new Console())]);
+        return $this;
     }
 
     protected function init(){
