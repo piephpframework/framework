@@ -2,18 +2,19 @@
 
 namespace Application;
 
-use Route\Route;
-use Console\Console;
+use Application\Routes\Route;
+use Application\Console\Console;
+use Application\Server\Server;
 
 class App extends Object {
 
     protected $name, $dependencies;
-    protected $route, $console;
+    protected $route, $console, $server;
 
     public function __construct($name, array $dependencies){
         $this->name = $name;
         $this->dependencies = $dependencies;
-        $this->init();
+        // $this->init();
     }
 
     /**
@@ -31,13 +32,19 @@ class App extends Object {
      * @param callable $callback A callable function to initiate colsole actions
      * @return App Returns the current application
      */
-    public function console(callback $callback){
+    public function console(callable $callback){
         call_user_func_array($callback, [($this->console = new Console())]);
         return $this;
     }
 
-    protected function init(){
-
+    /**
+     * Creates a server handler to handle server requests
+     * @param callablble $callback A callable function to handle server requests
+     * @return App Returns the current application
+     */
+    public function server(callable $callback){
+        call_user_func_array($callback, [($this->server = new Server())]);
+        return $this;
     }
 
 }

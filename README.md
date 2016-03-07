@@ -17,18 +17,18 @@ Once downloaded, create the file `index.php` inside the document root of your se
 ```php
 <?php
 
-use Pie\Pie;
+use Application\Pie;
 
 // Replace with your path
 require_once 'path/to/autoloader.php';
 
-$app = Pie::module('Welcome', []);
+$app = Pie::app('MyApplication');
 
-$app->controller('Welcome', function(){
-    echo '<h1>Welcome to Pie!</h1>';
+$app->web(function(Route $route){
+    $route->when('/', function(){
+        echo '<h1>Welcome to Pie!</h1>';
+    });
 });
-
-$app->call('Welcome');
 ```
 
 ### Change PHP Include Path (Optional)
@@ -91,40 +91,20 @@ An average index file with routing and templating usually looks like this
 ```php
 <?php
 
-use Pie\Pie;
-use Pie\Crust\Scope;
-use Pie\Crust\Env;
-use Pie\Modules\Route\Route;
+use Application\Pie;
+use Application\Scope;
+use Application\Env;
+use Route\Route;
 
 // Load the autoloader
-require_once 'piephp/autoloader.php';
-
-// Load the evironments configuration
-Env::loadFromFile('../config.ini');
+require_once 'autoloader.php';
 
 // Create the base app
-$app = Pie::module('MyWebApp', ['Route', 'Tpl']);
+$app = Pie::module('MyWebApp');
 
 // Create the apps configuration
-$app->config(function(Route $route){
-
-    // Define what to do for all routing requests
-    $route->always([
-        'baseTemplateUrl' => '/index.html', // Handles html pages
-                                            // html pages have a templateUrl in the route
-        'displayAs'       => 'json'         // Handles non html pages
-                                            // non html pages have a controller in the route
-    ]);
-
-    // Define each route
-    $route->when('/', [
-        'templateUrl' => '/views/home.html'
-    ]);
-});
-
-// Create a controller to handle the request
-$app->controller('home', function(Scope $scope){
-    $scope->header = 'Welcome';
+$app->web(function(Route $route){
+    $route->when('/', view('home'));
 });
 ```
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Route;
+namespace Application\Routes;
 
 abstract class RequestType {
     const All    = 'All';

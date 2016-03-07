@@ -1,6 +1,6 @@
 <?php
 
-namespace Route;
+namespace Application\Routes;
 
 use Application\ApplicationController;
 
@@ -27,9 +27,9 @@ class Path {
      * @param mixed $requestType The request type that this route accepts
      * @return Path
      */
-    public function __construct($path, $controller, $requestType){
+    public function __construct($path, ApplicationController $controller, $requestType){
         $this->path = $path;
-        $this->controller = new ApplicationController($controller);
+        $this->controller = $controller;
         $this->requestType = $requestType;
     }
 

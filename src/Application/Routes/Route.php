@@ -1,14 +1,16 @@
 <?php
 
-namespace Route;
+namespace Application\Routes;
 
 use Collections\ArrayList;
 use Application\View;
+use Application\Response;
+use Application\ApplicationController;
 
 class Route {
 
     protected $paths;
-    protected $prefix = '';
+    protected $prefix = '', $shell = '';
     protected $routeRan = false;
 
     public function __construct(){
@@ -23,6 +25,8 @@ class Route {
         if($foundRoute !== null){
             $result = $this->runRoute($foundRoute);
             $this->handleResult($result);
+        }else{
+            $this->handleResult(response(404)->view('errors/404'));
         }
     }
 
@@ -37,6 +41,8 @@ class Route {
             if(is_string($result)){
                 echo $result;
             }
+        }elseif(is_string($response)){
+            echo $response;
         }
     }
 
@@ -71,8 +77,10 @@ class Route {
      */
     public function group(array $options, callable $callback){
         $this->prefix($options);
+        $this->shell($options);
         call_user_func_array($callback, [$this]);
         $this->dePrefix();
+        $this->deShell();
         return $this;
     }
 
@@ -85,8 +93,13 @@ class Route {
      */
     public function when($path, $controller, $requestType = RequestType::All){
         $routePath = preg_replace('/\/\/+/', '/', '/' . $this->prefix . '/' . $path);
-        $path = new Path($routePath, $controller, $requestType);
-        $this->paths->add($path);
+        $shell = null;
+        if(!empty($this->shell)){
+            $shell = view($this->shell);
+        }
+        $this->paths->add(
+            $path = new Path($routePath, new ApplicationController($controller, $shell), $requestType)
+        );
         return $path;
     }
 
@@ -162,6 +175,17 @@ class Route {
         return $this;
     }
 
+    protected function shell($options){
+        if(isset($options['shell'])){
+            $this->shell = trim($options['shell']);
+        }
+        return $this;
+    }
+
+    protected function deShell(){
+        $this->shell = '';
+    }
+
     /**
      * Runs a path if a path has not yet been run
      * @param Path $path The path to run
@@ -198,6 +222,10 @@ class Route {
                 if($routeDir == $testDir && ($method == $tpath->method || $tpath->method == RequestType::All)){
                     $validPath = true;
                     continue;
+                }
+                if($routeDir != $testDir){
+                    $validPath = false;
+                    break;
                 }
             }
             if($validPath){

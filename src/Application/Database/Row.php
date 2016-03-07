@@ -1,6 +1,6 @@
 <?php
 
-namespace Database;
+namespace Application\Database;
 
 class Row {
 
