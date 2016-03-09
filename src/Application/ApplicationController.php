@@ -3,6 +3,7 @@
 namespace Application;
 
 use Application\View;
+use Application\Templates\Tpl;
 
 class ApplicationController {
 
@@ -31,11 +32,12 @@ class ApplicationController {
             $response = $this->controller;
         }
 
-        // if($this->shell instanceof View && $response instanceof View){
-
-        // }else{
+        if($this->shell instanceof View && $response instanceof View){
+            $tpl = new Tpl();
+            return $tpl->getView($response, $this->shell);
+        }else{
             return $response;
-        // }
+        }
     }
 
 }
