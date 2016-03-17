@@ -2,7 +2,7 @@
 
 namespace Application;
 
-
+use SimpleXMLElement;
 
 class Response{
 
@@ -42,7 +42,7 @@ class Response{
         // $data = array('total_stud' => 500);
 
         // creating object of SimpleXMLElement
-        $xml_data = new \SimpleXMLElement('<?xml version="1.0"?><' . $root_name . '></' . $root_name . '>');
+        $xml_data = new SimpleXMLElement('<?xml version="1.0"?><' . $root_name . '></' . $root_name . '>');
 
         // function call to convert array to xml
         array_to_xml($data, $xml_data);

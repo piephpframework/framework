@@ -27,7 +27,16 @@ class View {
                 $this->content = '';
             }
         }
-        return $this->content;
+        return tplFormat($this->content);
+    }
+
+    /**
+     * Formats the content for usage in Templating
+     * @param string $string The string to be formatted
+     * @return string The resulting string
+     */
+    public function tplFormat($string){
+        return str_replace(['<br>','<hr>'], ['<br/>', '<hr/>'], $string);
     }
 
 }

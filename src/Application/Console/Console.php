@@ -12,9 +12,12 @@ class Console {
         $this->commands = new ArrayList(Command::class);
     }
 
-    public function listen($message = null, $input_prefix = ''){
-        if($message !== null && is_string($message)){
-            echo $message . "\n";
+    public function listen(callable $callback = null, $input_prefix = ''){
+        if($callback !== null && is_callable($callback)){
+            $callbackResult = call_user_func($callback, $this);
+            if($callbackResult instanceof ConsoleMessage){
+                echo $callbackResult->message;
+            }
         }
         $handle = fopen ("php://stdin","r");
         while($this->listen){
@@ -24,8 +27,8 @@ class Console {
                 $commands = array_map('trim', explode('|', $cmd->command));
                 if(in_array($command, $commands)){
                     $result = $cmd->runController([$this]);
-                    if(is_string($result)){
-                        echo $result;
+                    if($result instanceof ConsoleMessage){
+                        echo $result->message;
                     }
                 }
             }

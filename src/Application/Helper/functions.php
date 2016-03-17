@@ -2,6 +2,7 @@
 
 use Application\View;
 use Application\Response;
+use Application\Console\ConsoleMessage;
 
 /**
  * A short hand way to create a new view from any controller
@@ -15,7 +16,7 @@ function view($name){
 function response($code = 200){
     $sapi = php_sapi_name();
     if($sapi === 'cli'){
-        return trim($code) . "\n";
+        return new ConsoleMessage(trim($code) . "\n");
     }
     return new Response($code);
 }
