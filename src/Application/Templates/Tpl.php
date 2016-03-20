@@ -186,7 +186,7 @@ class Tpl {
     protected function applyRepeat(DOMDocument $dom, $search = '', $parentKey = '', $parentVal = ''){
         $xpath = new DOMXPath($dom);
         foreach ($xpath->query('//*[@pi-repeat][not(ancestor::*[@pi-repeat])]') as $node) {
-            var_dump($dom->saveHTML($node));
+            // var_dump($dom->saveHTML($node));
             $value = $node->getAttribute('pi-repeat');
             $node->removeAttribute('pi-repeat');
             $value = array_map('trim', explode(' as ', $value));
