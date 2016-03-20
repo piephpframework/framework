@@ -1,6 +1,7 @@
 <?php
 
 use Application\View;
+use Application\Scope;
 use Application\Response;
 use Application\Console\ConsoleMessage;
 
@@ -9,8 +10,8 @@ use Application\Console\ConsoleMessage;
  * @param string $name The name of the view
  * @return View Returns a new instance of a View
  */
-function view($name){
-    return new View($name);
+function view($name, Scope $scope = null){
+    return new View($name, $scope);
 }
 
 function response($code = 200){

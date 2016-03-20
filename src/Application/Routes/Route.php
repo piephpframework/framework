@@ -4,6 +4,7 @@ namespace Application\Routes;
 
 use Collections\ArrayList;
 use Application\View;
+use Application\Templates\Tpl;
 use Application\Response;
 use Application\ApplicationController;
 
@@ -38,6 +39,10 @@ class Route {
     public function handleResult($response){
         if($response instanceof View){
             $result = $response->getView();
+            if($result instanceof Tpl){
+                $result->setScope($result->getTemplateView()->getScope());
+                $result = $result->buildTemplate();
+            }
             if(is_string($result)){
                 echo $result;
             }

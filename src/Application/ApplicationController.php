@@ -2,6 +2,7 @@
 
 namespace Application;
 
+use ReflectionMethod;
 use Application\View;
 use Application\Templates\Tpl;
 
@@ -27,7 +28,8 @@ class ApplicationController {
             list($path, $method) = explode(':', $this->controller);
             $class = 'App\\Controllers\\' . $path;
             $init = new $class();
-            $response = call_user_func_array([$init, $method], $args);
+            $params = $this->injectParams($init, $method);
+            $response = call_user_func_array([$init, $method], $params);
         }elseif($this->controller instanceof View){
             $response = $this->controller;
         }
@@ -38,6 +40,17 @@ class ApplicationController {
         }else{
             return $response;
         }
+    }
+
+    protected function injectParams($object, $method){
+        $params = [];
+        $ref = new ReflectionMethod($object, $method);
+        foreach($ref->getParameters() as $param){
+            if(strtolower($param->name) == 'scope'){
+                $params[] = new Scope;
+            }
+        }
+        return $params;
     }
 
 }
